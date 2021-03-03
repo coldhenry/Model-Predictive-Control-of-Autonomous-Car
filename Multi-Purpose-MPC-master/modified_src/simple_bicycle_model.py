@@ -188,7 +188,7 @@ class BicycleModel(ABC):
 # Simple Bicycle Model #
 ########################
 
-def SimpleBicycleModel(BicycleModel):
+class SimpleBicycleModel(BicycleModel):
 
     def __init__(self, reference_path, length, width, Ts):
 
@@ -212,13 +212,13 @@ def SimpleBicycleModel(BicycleModel):
 
         # Construct Jacobian Matrix
         # TODO
-        a_1 = np.array([0, 0, -v_ref * np.sin(theta_ref, delta_ref)])
-        a_2 = np.array([0, 0, v_ref * np.cos(theta_ref + delta_ref)])
+        a_1 = np.array([0, 0, -v_ref * np.sin(theta_ref)])
+        a_2 = np.array([0, 0, v_ref * np.cos(theta_ref)])
         a_3 = np.array([0, 0, 0])
 
-        b_1 = np.array([np.cos(theta_ref + delta_ref), -v_ref * np.sin(theta_ref + delta_ref)])
-        b_2 = np.array([np.sin(theta_ref + delta_ref), v_ref * np.cos(theta_ref + delta_ref)])
-        b_3 = np.array([1/self.length*np.tan(delta_ref), v_ref/self.length*np.arccos(delta_ref)**2])
+        b_1 = np.array([np.cos(theta_ref), 0])
+        b_2 = np.array([np.sin(theta_ref), 0])
+        b_3 = np.array([np.tan(delta_ref)/self.length, v_ref*(np.tan(delta_ref)**2 + 1)/self.length])
 
         # f = np.array([0.0, 0.0, 1 / v_ref * delta_s])
 
