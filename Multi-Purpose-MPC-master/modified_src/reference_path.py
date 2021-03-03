@@ -18,7 +18,7 @@ OBSTACLE = '#2E4053'
 ############
 
 class Waypoint:
-    def __init__(self, x, y, psi, kappa):
+    def __init__(self, x, y, psi, delta, kappa):
         """
         Waypoint object containing x, y location in global coordinate system,
         orientation of waypoint psi and local curvature kappa. Waypoint further
@@ -27,11 +27,13 @@ class Waypoint:
         :param x: x position in global coordinate system | [m]
         :param y: y position in global coordinate system | [m]
         :param psi: orientation of waypoint | [rad]
+        :param delta: steering angle of waypoint | [rad]
         :param kappa: local curvature | [1 / m]
         """
         self.x = x
         self.y = y
         self.psi = psi
+        self.delta = delta
         self.kappa = kappa
 
         # Reference velocity at this waypoint according to speed profile
@@ -175,7 +177,7 @@ class ReferencePath:
 
             # Get x and y coordinates of current waypoint
             x, y = current_wp[0], current_wp[1]
-
+            
             # Compute local curvature at waypoint
             # first waypoint
             if wp_id == 0:
@@ -183,12 +185,15 @@ class ReferencePath:
             else:
                 prev_wp = np.array(waypoint_coordinates[wp_id - 1])
                 dif_behind = current_wp - prev_wp
-                angle_behind = np.arctan2(dif_behind[1], dif_behind[0])
+                angle_behind = np.arctan2(dif_behind[1], dif_behind[0])     # steering angle
                 angle_dif = np.mod(psi - angle_behind + math.pi, 2 * math.pi) \
                             - math.pi
                 kappa = angle_dif / (dist_ahead + self.eps)
+                
+                # assign steering angle
+                waypoints[wp_id - 1].delta = angle_befind
 
-            waypoints.append(Waypoint(x, y, psi, kappa))
+            waypoints.append(Waypoint(x, y, psi, 0, kappa))
 
         return waypoints
 
