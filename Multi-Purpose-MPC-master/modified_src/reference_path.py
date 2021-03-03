@@ -185,13 +185,12 @@ class ReferencePath:
             else:
                 prev_wp = np.array(waypoint_coordinates[wp_id - 1])
                 dif_behind = current_wp - prev_wp
-                angle_behind = np.arctan2(dif_behind[1], dif_behind[0])     # steering angle
-                angle_dif = np.mod(psi - angle_behind + math.pi, 2 * math.pi) \
-                            - math.pi
+                angle_behind = np.arctan2(dif_behind[1], dif_behind[0])
+                angle_dif = np.mod(psi - angle_behind + math.pi, 2 * math.pi) - math.pi # steering angle
                 kappa = angle_dif / (dist_ahead + self.eps)
                 
                 # assign steering angle
-                waypoints[wp_id - 1].delta = angle_befind
+                waypoints[wp_id - 1].delta = angle_dif
 
             waypoints.append(Waypoint(x, y, psi, 0, kappa))
 
