@@ -1,9 +1,9 @@
 from map import Map, Obstacle
 import numpy as np
 from reference_path import ReferencePath
-from spatial_bicycle_models import BicycleModel
+from simple_bicycle_model import SimpleBicycleModel
 import matplotlib.pyplot as plt
-from MPC import MPC
+from MPC_test import MPC
 from scipy import sparse
 
 
@@ -47,11 +47,11 @@ if __name__ == '__main__':
             obs8 = Obstacle(cx=1.2, cy=0.0, radius=0.08)
             obs9 = Obstacle(cx=0.67, cy=-0.05, radius=0.06)
             map.add_obstacles([obs1, obs2, obs3, obs4, obs5, obs6, obs7,
-                                          obs8, obs9])
+                               obs8, obs9])
 
         # Instantiate motion model
-        car = BicycleModel(length=0.12, width=0.06,
-                           reference_path=reference_path, Ts=0.05)
+        car = SimpleBicycleModel(length=0.12, width=0.06,
+                                 reference_path=reference_path, Ts=0.05)
 
     # Real-World Environment. Track used for testing the algorithm on a 1:12
     # RC car.
@@ -84,8 +84,8 @@ if __name__ == '__main__':
             map.add_obstacles([obs1, obs2, obs4, obs8, obs9])
 
         # Instantiate motion model
-        car = BicycleModel(length=0.30, width=0.20,
-                           reference_path=reference_path, Ts=0.05)
+        car = SimpleBicycleModel(length=0.30, width=0.20,
+                                 reference_path=reference_path, Ts=0.05)
 
     else:
         print('Invalid Simulation Mode!')

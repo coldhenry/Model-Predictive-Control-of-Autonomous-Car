@@ -23,9 +23,9 @@ class MPC:
         self.R = R
         self.QN = QN
 
+        self.model = model
         self.nx = self.model.n_states
         self.nu = 2
-        self.model = model
 
         self.state_constraints = StateConstraints
         self.input_constraints = InputConstraints
@@ -69,7 +69,8 @@ class MPC:
         # derive predicted curvature from last control
         # kappa = tan(delta) / length
         kappa_pred = (
-            np.tan(np.array(self.current_control[3::] + self.current_control[-1::]))
+            np.tan(
+                np.array(self.current_control[3::] + self.current_control[-1::]))
             / self.model.length
         )
 
@@ -83,30 +84,36 @@ class MPC:
             next_waypoint = self.model.reference_path.get_waypoint(
                 self.model.wp_id + n + 1
             )
-            delta_s = next_waypoint - current_waypoint
-            kappa_ref = current_waypoint.kappa
+
+            # Previous reference output
+            # delta_s = next_waypoint - current_waypoint
+            # kappa_ref = current_waypoint.kappa
+
             v_ref = current_waypoint.v_ref
+            psi_ref = current_waypoint.psi
             # TODO: reference values below haven't created yet
-            theta_ref = current_waypoint.theta
             delta_ref = current_waypoint.delta
 
             # get linearized LTV model
             # TODO: different model, different states
-            A_lin, B_lin = self.model.linearize(v_ref, theta_ref, delta_ref)
+            A_lin, B_lin = self.model.linearize(v_ref, psi_ref, delta_ref)
 
             A[
-                (n + 1) * self.nx : (n + 2) * self.nx, n * self.nx : (n + 1) * self.nx
+                (n + 1) * self.nx: (n + 2) * self.nx, n * self.nx: (n + 1) * self.nx
             ] = A_lin
             B[
-                (n + 1) * self.nx : (n + 2) * self.nx, n * self.nx : (n + 1) * self.nu
+                (n + 1) * self.nx: (n + 2) * self.nx, n * self.nu: (n + 1) * self.nu
             ] = B_lin
 
             # TODO: 2 inputs have changed
-            u_ref[n * self.nu : (n + 1) * self.nu] = np.array([v_ref, delta_ref])
+            u_ref[n * self.nu: (n + 1) *
+                  self.nu] = np.array([v_ref, delta_ref])
 
             # compute equality constraint offset
             # TODO: dunno what this is
-            u_eq[n * self.nx : (n + 1) * self.nx] = None
+            u_eq[n * self.nx: (n + 1) * self.nx] = B_lin.dot(
+                np.array([v_ref, delta_ref])
+            )
 
             # maximum speed limited by predicted car curvature
             vmax_dyn = np.sqrt(self.ay_max / (np.abs(kappa_pred[n] + 1e-12)))
@@ -120,13 +127,13 @@ class MPC:
             2 * self.model.safety_margin,
             self.model.safety_margin,
         )
-        xmin_dyn[0] = self.model.current_state.x  # TODO
-        xmax_dyn[0] = self.model.current_state.x  # TODO
-        xmin_dyn[self.nx :: self.nx] = low_b
-        xmax_dyn[self.nx :: self.nx] = upp_b
+        xmin_dyn[0] = self.model.temporal_state.x  # TODO
+        xmax_dyn[0] = self.model.temporal_state.x  # TODO
+        xmin_dyn[self.nx:: self.nx] = low_b
+        xmax_dyn[self.nx:: self.nx] = upp_b
 
         # reference state = middle line of free space
-        x_ref[self.nx :: self.nx] = (low_b + upp_b) / 2
+        x_ref[self.nx:: self.nx] = (low_b + upp_b) / 2
 
         """
         form an QP problem using the format of OSQP
@@ -152,7 +159,7 @@ class MPC:
         q = np.hstack(
             [
                 -np.tile(np.diag(self.Q.A), self.N) * x_ref[: -self.nx],
-                -self.QN.dot(x_ref[-self.nx :]),
+                -self.QN.dot(x_ref[-self.nx:]),
                 -np.tile(np.diag(self.R.A), self.N) * u_ref,
             ]
         )
@@ -163,8 +170,9 @@ class MPC:
 
         # equality part
         Ax = sparse.kron(
-            sparse.eye(self.N + 1), -sparse.eye(self.nx) + sparse.csc_matrix(A)
-        )
+            sparse.eye(self.N + 1), -sparse.eye(self.nx)
+        ) + sparse.csc_matrix(A)
+
         Bu = sparse.csc_matrix(B)
         A_eq = sparse.hstack([Ax, Bu])
 
@@ -178,7 +186,7 @@ class MPC:
         #####################################
 
         # equality part: just for the format
-        x0 = np.array(self.model.current_state[:])
+        x0 = np.array(self.model.temporal_state[:])
         low_eq = np.hstack([-x0, u_eq])
         upp_eq = low_eq  # format reason
 
@@ -205,8 +213,14 @@ class MPC:
         self.init_problem()
         res = self.optimizer.solve()
 
+        # Check solver status
+        if res.info.status != 'solved':
+            raise ValueError('OSQP did not solve the problem!')
+
         try:
-            command = np.array(res.x[-self.N * self.nu :])
+            command = np.array(res.x[-self.N * self.nu:])
+            command[1::2] = np.arctan(command[1::2] *
+                                      self.model.length)
             v, delta = command[0], command[1]
             ctrl = np.array([v, delta])
 
@@ -214,7 +228,9 @@ class MPC:
             self.current_control = command
 
             # update prediction (x,y coordinates)
-            x = np.reshape(res.x[: (self.N + 1) * self.nx], (self.N + 1, self.nx))
+            x = np.reshape(res.x[: (self.N + 1) * self.nx],
+                           (self.N + 1, self.nx))
+            print("x: ", x)
             self.current_prediction = self.update_prediction(x)
 
             # reset infeasibility counter if problem is solved
@@ -224,7 +240,7 @@ class MPC:
 
             print("Infeasible problem, use last predicited control input")
             id = self.nu * (self.infeasibility_counter + 1)
-            ctrl = np.array(self.current_control[id : id + 2])
+            ctrl = np.array(self.current_control[id: id + 2])
 
             self.infeasibility_counter += 1
 
@@ -241,13 +257,13 @@ class MPC:
         x_pred, y_pred = [], []
 
         for n in range(2, self.N):
-            matched_waypoint = self.model.reference_path.get_waypoint(self.model.wp_id + n)
-            
-            # TODO since we don't need to tranform from spatial to temporal, need change
-            predicted_state = None
+            matched_waypoint = self.model.reference_path.get_waypoint(
+                self.model.wp_id + n
+            )
 
-            x_pred.append(predicted_state.x)
-            y_pred.append(predicted_state.y)
+            # TODO since we don't need to tranform from spatial to temporal, need change
+            x_pred.append(matched_waypoint.x)
+            y_pred.append(matched_waypoint.y)
 
         return x_pred, y_pred
 
@@ -257,8 +273,9 @@ class MPC:
         """
 
         if self.current_prediction is not None:
-            plt.scatter(self.current_prediction[0], self.current_prediction[1],
-                    c=PREDICTION, s=30)
-
-
-
+            plt.scatter(
+                self.current_prediction[0],
+                self.current_prediction[1],
+                c=PREDICTION,
+                s=30,
+            )
