@@ -31,8 +31,8 @@ class Obstacle:
         """
 
         # Draw circle
-        circle = plt_patches.Circle(xy=(self.cx, self.cy), radius=
-                                        self.radius, color=OBSTACLE, zorder=20)
+        circle = plt_patches.Circle(
+            xy=(self.cx, self.cy), radius=self.radius, color=OBSTACLE, zorder=20)
         ax = plt.gca()
         ax.add_patch(circle)
 
@@ -42,7 +42,7 @@ class Obstacle:
 #######
 
 class Map:
-    def __init__(self, file_path, origin, resolution, threshold_occupied=100):
+    def __init__(self, file_path, origin, resolution=1, threshold_occupied=100):
         """
         Constructor for map object. Map contains occupancy grid map data of
         environment as well as meta information.
@@ -134,7 +134,7 @@ class Map:
             y, x = np.ogrid[-radius_px: radius_px, -radius_px: radius_px]
             index = x ** 2 + y ** 2 <= radius_px ** 2
             self.data[cy_px-radius_px:cy_px+radius_px, cx_px-radius_px:
-                                                cx_px+radius_px][index] = 0
+                      cx_px+radius_px][index] = 0
 
     def add_boundary(self, boundaries):
         """
@@ -156,7 +156,7 @@ class Map:
 
 
 if __name__ == '__main__':
-    map = Map('maps/real_map.png')
+    map = Map('maps/real_map.png', 1)
     # map = Map('maps/sim_map.png')
     plt.imshow(np.flipud(map.data), cmap='gray')
     plt.show()

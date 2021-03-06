@@ -212,6 +212,10 @@ class SimpleBicycleModel(BicycleModel):
 
         self.temporal_state = TemporalState()
 
+        self.temporal_state.x = self.current_waypoint.x
+        self.temporal_state.y = self.current_waypoint.y
+        self.temporal_state.psi = self.current_waypoint.psi
+
         # Number of spatial state variables
         self.n_states = len(self.temporal_state)
 
