@@ -90,8 +90,10 @@ class MPC:
         for n in range(self.N):
 
             # Get information about current waypoint
-            current_waypoint = self.model.reference_path.get_waypoint(self.model.wp_id + n)
-            next_waypoint = self.model.reference_path.get_waypoint(self.model.wp_id + n + 1)
+            current_waypoint = self.model.reference_path.get_waypoint(
+                self.model.wp_id + n)
+            next_waypoint = self.model.reference_path.get_waypoint(
+                self.model.wp_id + n + 1)
             delta_s = next_waypoint - current_waypoint
             kappa_ref = current_waypoint.kappa
             v_ref = current_waypoint.v_ref
@@ -105,7 +107,7 @@ class MPC:
             ur[n*self.nu:(n+1)*self.nu] = np.array([v_ref, kappa_ref])
             # Compute equality constraint offset (B*ur)
             uq[n * self.nx:(n+1)*self.nx] = B_lin.dot(np.array
-                                            ([v_ref, kappa_ref])) - f
+                                                      ([v_ref, kappa_ref])) - f
 
             # Constrain maximum speed based on predicted car curvature
             vmax_dyn = np.sqrt(self.ay_max / (np.abs(kappa_pred[n]) + 1e-12))
@@ -114,7 +116,7 @@ class MPC:
 
         # Compute dynamic constraints on e_y
         ub, lb, _ = self.model.reference_path.update_path_constraints(
-                    self.model.wp_id+1, self.N, 2*self.model.safety_margin,
+            self.model.wp_id+1, self.N, 2*self.model.safety_margin,
             self.model.safety_margin)
         xmin_dyn[0] = self.model.spatial_state.e_y
         xmax_dyn[0] = self.model.spatial_state.e_y
@@ -145,10 +147,12 @@ class MPC:
         # Combine upper and lower bound vectors
         l = np.hstack([leq, lineq])
         u = np.hstack([ueq, uineq])
+        print("l\n", l)
+        print("u\n", u)
 
         # Set cost matrices
         P = sparse.block_diag([sparse.kron(sparse.eye(self.N), self.Q), self.QN,
-             sparse.kron(sparse.eye(self.N), self.R)], format='csc')
+                               sparse.kron(sparse.eye(self.N), self.R)], format='csc')
         q = np.hstack(
             [-np.tile(np.diag(self.Q.A), self.N) * xr[:-self.nx],
              -self.QN.dot(xr[-self.nx:]),
@@ -172,9 +176,8 @@ class MPC:
         self.model.get_current_waypoint()
 
         # Update spatial state
-        self.model.spatial_state = self.model.t2s(reference_state=
-            self.model.temporal_state, reference_waypoint=
-            self.model.current_waypoint)
+        self.model.spatial_state = self.model.t2s(
+            reference_state=self.model.temporal_state, reference_waypoint=self.model.current_waypoint)
 
         # Initialize optimization problem
         self._init_problem()
@@ -239,7 +242,7 @@ class MPC:
                 get_waypoint(self.model.wp_id+n)
             # Transform predicted spatial state to temporal state
             predicted_temporal_state = self.model.s2t(associated_waypoint,
-                                            spatial_state_prediction[n, :])
+                                                      spatial_state_prediction[n, :])
 
             # Save predicted coordinates in world coordinate frame
             x_pred.append(predicted_temporal_state.x)
@@ -254,5 +257,4 @@ class MPC:
 
         if self.current_prediction is not None:
             plt.scatter(self.current_prediction[0], self.current_prediction[1],
-                    c=PREDICTION, s=30)
-
+                        c=PREDICTION, s=30)

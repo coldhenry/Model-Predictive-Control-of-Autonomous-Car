@@ -70,7 +70,8 @@ class MPC:
         # derive predicted curvature from last control
         # kappa = tan(delta) / length
         kappa_pred = (
-            np.tan(np.array(self.current_control[3::] + self.current_control[-1::]))
+            np.tan(
+                np.array(self.current_control[3::] + self.current_control[-1::]))
             / self.model.length
         )
 
@@ -99,18 +100,19 @@ class MPC:
             A_lin, B_lin = self.model.linearize(v_ref, psi_ref, delta_ref)
 
             A[
-                (n + 1) * self.nx : (n + 2) * self.nx, n * self.nx : (n + 1) * self.nx
+                (n + 1) * self.nx: (n + 2) * self.nx, n * self.nx: (n + 1) * self.nx
             ] = A_lin
             B[
-                (n + 1) * self.nx : (n + 2) * self.nx, n * self.nu : (n + 1) * self.nu
+                (n + 1) * self.nx: (n + 2) * self.nx, n * self.nu: (n + 1) * self.nu
             ] = B_lin
 
             # TODO: 2 inputs have changed
-            u_ref[n * self.nu : (n + 1) * self.nu] = np.array([v_ref, delta_ref])
+            u_ref[n * self.nu: (n + 1) *
+                  self.nu] = np.array([v_ref, delta_ref])
 
             # compute equality constraint offset
             # TODO: dunno what this is
-            u_eq[n * self.nx : (n + 1) * self.nx] = B_lin.dot(
+            u_eq[n * self.nx: (n + 1) * self.nx] = B_lin.dot(
                 np.array([v_ref, delta_ref])
             )
 
@@ -126,8 +128,6 @@ class MPC:
             2 * self.model.safety_margin,
             self.model.safety_margin,
         )
-
-        print("DIMENSION: ", upp_b)
         # TODO: the constraints should place on x,y instead of e_y
         xmin_dyn[0], xmin_dyn[1] = (
             self.model.temporal_state.x,
@@ -137,16 +137,20 @@ class MPC:
             self.model.temporal_state.x,
             self.model.temporal_state.y,
         )
-        print(xmin_dyn[self.nx :: self.nx])
+
         for i in range(self.N):
             xmin_dyn[self.nx + i * self.nx] = low_b[0 + i * self.nx]
-            xmin_dyn[self.nx + i * self.nx] = low_b[1 + i * self.nx]
-            xmax_dyn[self.nx + i * self.nx] = upp_b[0 + i * self.nx]
-            xmax_dyn[self.nx + i * self.nx] = upp_b[1 + i * self.nx]
+            xmin_dyn[self.nx + i * self.nx + 1] = low_b[1 + i * self.nx]
+            xmax_dyn[self.nx + i * self.nx] = upp_b[0 + i * self.nx] + 0.000001
+            xmax_dyn[self.nx + i * self.nx +
+                     1] = upp_b[1 + i * self.nx] = 0.000001
 
             # reference state = middle line of free space
             x_ref[self.nx + i * self.nx] = (
                 low_b[0 + i * self.nx] + upp_b[0 + i * self.nx]
+            ) / 2
+            x_ref[self.nx + i * self.nx + 1] = (
+                low_b[0 + i * self.nx + 1] + upp_b[0 + i * self.nx + 1]
             ) / 2
 
         """
@@ -173,7 +177,7 @@ class MPC:
         q = np.hstack(
             [
                 -np.tile(np.diag(self.Q.A), self.N) * x_ref[: -self.nx],
-                -self.QN.dot(x_ref[-self.nx :]),
+                -self.QN.dot(x_ref[-self.nx:]),
                 -np.tile(np.diag(self.R.A), self.N) * u_ref,
             ]
         )
@@ -227,12 +231,12 @@ class MPC:
         self.init_problem()
         res = self.optimizer.solve()
 
-        # Check solver status
-        if res.info.status != "solved":
-            raise ValueError("OSQP did not solve the problem!")
+        # # Check solver status
+        # if res.info.status != "solved":
+        #     raise ValueError("OSQP did not solve the problem!")
 
         try:
-            command = np.array(res.x[-self.N * self.nu :])
+            command = np.array(res.x[-self.N * self.nu:])
             command[1::2] = np.arctan(command[1::2] * self.model.length)
             v, delta = command[0], command[1]
             ctrl = np.array([v, delta])
@@ -241,8 +245,8 @@ class MPC:
             self.current_control = command
 
             # update prediction (x,y coordinates)
-            x = np.reshape(res.x[: (self.N + 1) * self.nx], (self.N + 1, self.nx))
-            print("x: ", x)
+            x = np.reshape(res.x[: (self.N + 1) * self.nx],
+                           (self.N + 1, self.nx))
             self.current_prediction = self.update_prediction(x)
 
             # reset infeasibility counter if problem is solved
@@ -252,7 +256,7 @@ class MPC:
 
             print("Infeasible problem, use last predicited control input")
             id = self.nu * (self.infeasibility_counter + 1)
-            ctrl = np.array(self.current_control[id : id + 2])
+            ctrl = np.array(self.current_control[id: id + 2])
 
             self.infeasibility_counter += 1
 

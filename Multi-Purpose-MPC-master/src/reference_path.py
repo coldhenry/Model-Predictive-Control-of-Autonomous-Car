@@ -118,26 +118,26 @@ class ReferencePath:
         # Number of waypoints
         n_wp = [int(np.sqrt((wp_x[i + 1] - wp_x[i]) ** 2 +
                             (wp_y[i + 1] - wp_y[i]) ** 2) /
-                self.resolution) for i in range(len(wp_x) - 1)]
+                    self.resolution) for i in range(len(wp_x) - 1)]
 
         # Construct waypoints with specified resolution
         gp_x, gp_y = wp_x[-1], wp_y[-1]
         wp_x = [np.linspace(wp_x[i], wp_x[i+1], n_wp[i], endpoint=False).
-                    tolist() for i in range(len(wp_x)-1)]
+                tolist() for i in range(len(wp_x)-1)]
         wp_x = [wp for segment in wp_x for wp in segment] + [gp_x]
         wp_y = [np.linspace(wp_y[i], wp_y[i + 1], n_wp[i], endpoint=False).
-                    tolist() for i in range(len(wp_y) - 1)]
+                tolist() for i in range(len(wp_y) - 1)]
         wp_y = [wp for segment in wp_y for wp in segment] + [gp_y]
 
         # Smooth path
         wp_xs = []
         wp_ys = []
         for wp_id in range(self.smoothing_distance, len(wp_x) -
-                                                    self.smoothing_distance):
+                           self.smoothing_distance):
             wp_xs.append(np.mean(wp_x[wp_id - self.smoothing_distance:wp_id
-                                            + self.smoothing_distance + 1]))
+                                      + self.smoothing_distance + 1]))
             wp_ys.append(np.mean(wp_y[wp_id - self.smoothing_distance:wp_id
-                                            + self.smoothing_distance + 1]))
+                                      + self.smoothing_distance + 1]))
 
         # Construct list of waypoint objects
         waypoints = list(zip(wp_xs, wp_ys))
@@ -185,7 +185,7 @@ class ReferencePath:
                 dif_behind = current_wp - prev_wp
                 angle_behind = np.arctan2(dif_behind[1], dif_behind[0])
                 angle_dif = np.mod(psi - angle_behind + math.pi, 2 * math.pi) \
-                            - math.pi
+                    - math.pi
                 kappa = angle_dif / (dist_ahead + self.eps)
 
             waypoints.append(Waypoint(x, y, psi, kappa))
@@ -199,7 +199,7 @@ class ReferencePath:
         :return: length of center-line path in m
         """
         segment_lengths = [0.0] + [self.waypoints[wp_id+1] - self.waypoints
-                    [wp_id] for wp_id in range(len(self.waypoints)-1)]
+                                   [wp_id] for wp_id in range(len(self.waypoints)-1)]
         s = sum(segment_lengths)
         return s, segment_lengths
 
@@ -219,7 +219,7 @@ class ReferencePath:
                 # Get angle orthogonal to path in current direction
                 if dir == 'left':
                     angle = np.mod(wp.psi + math.pi / 2 + math.pi,
-                                 2 * math.pi) - math.pi
+                                   2 * math.pi) - math.pi
                 else:
                     angle = np.mod(wp.psi - math.pi / 2 + math.pi,
                                    2 * math.pi) - math.pi
@@ -399,10 +399,14 @@ class ReferencePath:
         wp_y = np.array([wp.y for wp in self.waypoints])
 
         # Get x and y locations of border cells for upper and lower bound
-        wp_ub_x = np.array([wp.static_border_cells[0][0] for wp in self.waypoints])
-        wp_ub_y = np.array([wp.static_border_cells[0][1] for wp in self.waypoints])
-        wp_lb_x = np.array([wp.static_border_cells[1][0] for wp in self.waypoints])
-        wp_lb_y = np.array([wp.static_border_cells[1][1] for wp in self.waypoints])
+        wp_ub_x = np.array([wp.static_border_cells[0][0]
+                            for wp in self.waypoints])
+        wp_ub_y = np.array([wp.static_border_cells[0][1]
+                            for wp in self.waypoints])
+        wp_lb_x = np.array([wp.static_border_cells[1][0]
+                            for wp in self.waypoints])
+        wp_lb_y = np.array([wp.static_border_cells[1][1]
+                            for wp in self.waypoints])
 
         # Plot waypoints
         # colors = [wp.v_ref for wp in self.waypoints]
@@ -411,11 +415,11 @@ class ReferencePath:
         # Plot arrows indicating drivable area
         if display_drivable_area:
             plt.quiver(wp_x, wp_y, wp_ub_x - wp_x, wp_ub_y - wp_y, scale=1,
-                   units='xy', width=0.2*self.resolution, color=DRIVABLE_AREA,
-                   headwidth=1, headlength=0)
+                       units='xy', width=0.2*self.resolution, color=DRIVABLE_AREA,
+                       headwidth=1, headlength=0)
             plt.quiver(wp_x, wp_y, wp_lb_x - wp_x, wp_lb_y - wp_y, scale=1,
-                   units='xy', width=0.2*self.resolution, color=DRIVABLE_AREA,
-                   headwidth=1, headlength=0)
+                       units='xy', width=0.2*self.resolution, color=DRIVABLE_AREA,
+                       headwidth=1, headlength=0)
 
         # Plot border of path
         bl_x = np.array([wp.static_border_cells[0][0] for wp in
@@ -439,29 +443,30 @@ class ReferencePath:
         else:
             plt.plot(bl_x[:-1], bl_y[:-1], color=OBSTACLE)
             plt.plot(br_x[:-1], br_y[:-1], color=OBSTACLE)
-            plt.plot((bl_x[-2], br_x[-2]), (bl_y[-2], br_y[-2]), color=OBSTACLE)
+            plt.plot((bl_x[-2], br_x[-2]),
+                     (bl_y[-2], br_y[-2]), color=OBSTACLE)
             plt.plot((bl_x[0], br_x[0]), (bl_y[0], br_y[0]), color=OBSTACLE)
 
         # Plot dynamic path constraints
         # Get x and y locations of border cells for upper and lower bound
         wp_ub_x = np.array(
-            [wp.dynamic_border_cells[0][0] for wp in self.waypoints]+
-                        [self.waypoints[0].static_border_cells[0][0]])
+            [wp.dynamic_border_cells[0][0] for wp in self.waypoints] +
+            [self.waypoints[0].static_border_cells[0][0]])
         wp_ub_y = np.array(
-            [wp.dynamic_border_cells[0][1] for wp in self.waypoints]+
-                        [self.waypoints[0].static_border_cells[0][1]])
+            [wp.dynamic_border_cells[0][1] for wp in self.waypoints] +
+            [self.waypoints[0].static_border_cells[0][1]])
         wp_lb_x = np.array(
-            [wp.dynamic_border_cells[1][0] for wp in self.waypoints]+
-                        [self.waypoints[0].static_border_cells[1][0]])
+            [wp.dynamic_border_cells[1][0] for wp in self.waypoints] +
+            [self.waypoints[0].static_border_cells[1][0]])
         wp_lb_y = np.array(
-            [wp.dynamic_border_cells[1][1] for wp in self.waypoints]+
-                        [self.waypoints[0].static_border_cells[1][1]])
+            [wp.dynamic_border_cells[1][1] for wp in self.waypoints] +
+            [self.waypoints[0].static_border_cells[1][1]])
         plt.plot(wp_ub_x, wp_ub_y, c=PATH_CONSTRAINTS)
         plt.plot(wp_lb_x, wp_lb_y, c=PATH_CONSTRAINTS)
 
         # Plot obstacles
         for obstacle in self.map.obstacles:
-             obstacle.show()
+            obstacle.show()
 
     def _compute_free_segments(self, wp, min_width):
         """
@@ -508,7 +513,7 @@ class ReferencePath:
                 lb_o = self.map.m2w(lb_o[0], lb_o[1])
                 # If segment larger than threshold, add to candidates
                 if np.sqrt((ub_o[0]-lb_o[0])**2 + (ub_o[1]-lb_o[1])**2) > \
-                    min_width:
+                        min_width:
                     free_segments.append((ub_o, lb_o))
                 # Start new segment
                 ub_o = (x, y)
@@ -543,7 +548,7 @@ class ReferencePath:
             # First waypoint in horizon uses largest segment
             if n == 0:
                 segment_lengths = [np.sqrt((seg[0][0]-seg[1][0])**2 +
-                            (seg[0][1]-seg[1][1])**2) for seg in free_segments]
+                                           (seg[0][1]-seg[1][1])**2) for seg in free_segments]
                 ls_id = segment_lengths.index(max(segment_lengths))
                 ub_ls, lb_ls = free_segments[ls_id]
 
@@ -573,8 +578,10 @@ class ReferencePath:
                         ub_fs, lb_fs = free_segment
 
                         # distance between upper bounds and lower bounds
-                        d_ub = np.sqrt((ub_fs[0]-ub_pw[0])**2 + (ub_fs[1]-ub_pw[1])**2)
-                        d_lb = np.sqrt((lb_fs[0]-lb_pw[0])**2 + (lb_fs[1]-lb_pw[1])**2)
+                        d_ub = np.sqrt((ub_fs[0]-ub_pw[0])
+                                       ** 2 + (ub_fs[1]-ub_pw[1])**2)
+                        d_lb = np.sqrt((lb_fs[0]-lb_pw[0])
+                                       ** 2 + (lb_fs[1]-lb_pw[1])**2)
                         mean_dist = (d_ub + d_lb) / 2
 
                         # Append offset to projected previous segment
@@ -596,17 +603,17 @@ class ReferencePath:
 
             # Check sign of upper and lower bound
             angle_ub = np.mod(np.arctan2(ub_ls[1] - wp.y, ub_ls[0] - wp.x)
-                                  - wp.psi + math.pi, 2 * math.pi) - math.pi
+                              - wp.psi + math.pi, 2 * math.pi) - math.pi
             angle_lb = np.mod(np.arctan2(lb_ls[1] - wp.y, lb_ls[0] - wp.x)
-                                  - wp.psi + math.pi, 2 * math.pi) - math.pi
+                              - wp.psi + math.pi, 2 * math.pi) - math.pi
             sign_ub = np.sign(angle_ub)
             sign_lb = np.sign(angle_lb)
 
             # Compute upper and lower bound of largest drivable area
             ub = sign_ub * np.sqrt(
-                    (ub_ls[0] - wp.x) ** 2 + (ub_ls[1] - wp.y) ** 2)
+                (ub_ls[0] - wp.x) ** 2 + (ub_ls[1] - wp.y) ** 2)
             lb = sign_lb * np.sqrt(
-                    (lb_ls[0] - wp.x) ** 2 + (lb_ls[1] - wp.y) ** 2)
+                (lb_ls[0] - wp.x) ** 2 + (lb_ls[1] - wp.y) ** 2)
 
             # Subtract safety margin
             ub -= safety_margin
@@ -620,14 +627,14 @@ class ReferencePath:
 
             # Compute absolute angle of bound cell
             angle_ub = np.mod(math.pi / 2 + wp.psi + math.pi,
-                                  2 * math.pi) - math.pi
+                              2 * math.pi) - math.pi
             angle_lb = np.mod(-math.pi / 2 + wp.psi + math.pi,
-                                  2 * math.pi) - math.pi
+                              2 * math.pi) - math.pi
             # Compute cell on bound for computed distance ub and lb
             ub_ls = wp.x + ub * np.cos(angle_ub), wp.y + ub * np.sin(
-                    angle_ub)
+                angle_ub)
             lb_ls = wp.x - lb * np.cos(angle_lb), wp.y - lb * np.sin(
-                    angle_lb)
+                angle_lb)
             bound_cells_sm = (ub_ls, lb_ls)
             # Compute cell on bound for computed distance ub and lb
             ub_ls = wp.x + (ub + safety_margin) * np.cos(angle_ub), wp.y + (ub + safety_margin) * np.sin(
@@ -656,7 +663,8 @@ if __name__ == '__main__':
     if path == 'Sim_Track':
 
         # Load map file
-        map = Map(file_path='maps/sim_map.png', origin=[-1, -2], resolution=0.005)
+        map = Map(file_path='maps/sim_map.png',
+                  origin=[-1, -2], resolution=0.005)
 
         # Specify waypoints
         wp_x = [-0.75, -0.25, -0.25, 0.25, 0.25, 1.25, 1.25, 0.75, 0.75, 1.25,
@@ -669,7 +677,7 @@ if __name__ == '__main__':
 
         # Create reference path
         reference_path = ReferencePath(map, wp_x, wp_y, path_resolution,
-                     smoothing_distance=5, max_width=0.15,
+                                       smoothing_distance=5, max_width=0.15,
                                        circular=True)
 
         # Add obstacles
@@ -682,7 +690,7 @@ if __name__ == '__main__':
         obs7 = Obstacle(cx=0.7, cy=-0.9, radius=0.07)
         obs8 = Obstacle(cx=1.2, cy=0.0, radius=0.08)
         reference_path.map.add_obstacles([obs1, obs2, obs3, obs4, obs5, obs6, obs7,
-                                      obs8])
+                                          obs8])
 
     elif path == 'Real_Track':
 
@@ -738,6 +746,3 @@ if __name__ == '__main__':
         reference_path.waypoints[wp_id].dynamic_border_cells = border_cells[wp_id]
     reference_path.show()
     plt.show()
-
-
-
