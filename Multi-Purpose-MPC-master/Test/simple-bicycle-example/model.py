@@ -8,36 +8,34 @@ sys.path.append('../../')
 
 
 def simple_bycicle_model():
-    """
-    --------------------------------------------------------------------------
-    template_model: Variables / RHS / AUX
-    --------------------------------------------------------------------------
-    """
+
     model_type = 'discrete'  # either 'discrete' or 'continuous'
     model = do_mpc.model.Model(model_type)
 
     # States struct (optimization variables):
-    _x = model.set_variable(var_type='_x', var_name='x', shape=(4, 1))
+    pos_x = model.set_variable(var_type='_x', var_name='pos_x')
+    pos_y = model.set_variable(var_type='_x', var_name='pos_y')
+    psi = model.set_variable(var_type='_x', var_name='psi')
+    vel = model.set_variable(var_type='_x', var_name='vel')
+    e_y = model.set_variable(var_type='_x', var_name='e_y')
+    e_psi = model.set_variable(var_type='_x', var_name='e_psi')
 
     # Input struct (optimization variables):
-    _u = model.set_variable(var_type='_u', var_name='u', shape=(2, 1))
+    acc = model.set_variable(var_type='_u', var_name='acc')
+    delta = model.set_variable(var_type='_u', var_name='delta')
 
-    # Set expression. These can be used in the cost function, as non-linear constraints
-    model.set_expression(expr_name='cost', expr=sum1(_x**2))
+    # other parameters
+    length = model.set_variable(var_type='_p', var_name='length')
 
-    A = np.array([[0.763,  0.460,  0.115,  0.020],
-                  [-0.899,  0.763,  0.420,  0.115],
-                  [0.115,  0.020,  0.763,  0.460],
-                  [0.420,  0.115, -0.899,  0.763]])
-
-    B = np.array([[0.014],
-                  [0.063],
-                  [0.221],
-                  [0.367]])
-
-    x_next = A@_x+B@_u
-    model.set_rhs('x', x_next)
+    model.set_rhs('pos_x', vel * np.cos(psi))
+    model.set_rhs('pos_y', vel * np.sin(psi))
+    model.set_rhs('psi', vel/length * np.tan(delta))
+    model.set_rhs('vel', acc)
+    model.set_rhs('e_y', vel * np.sin(e_y))
+    model.set_rhs('e_psi', vel/length * np.tan(delta))
 
     model.setup()
 
-    return model
+
+if __name__ == '__main__':
+    simple_bycicle_model()
