@@ -147,8 +147,6 @@ class MPC:
         # Combine upper and lower bound vectors
         l = np.hstack([leq, lineq])
         u = np.hstack([ueq, uineq])
-        print("l\n", l)
-        print("u\n", u)
 
         # Set cost matrices
         P = sparse.block_diag([sparse.kron(sparse.eye(self.N), self.Q), self.QN,
@@ -243,7 +241,7 @@ class MPC:
             # Transform predicted spatial state to temporal state
             predicted_temporal_state = self.model.s2t(associated_waypoint,
                                                       spatial_state_prediction[n, :])
-
+            print("predicted_temporal_state\n", predicted_temporal_state)
             # Save predicted coordinates in world coordinate frame
             x_pred.append(predicted_temporal_state.x)
             y_pred.append(predicted_temporal_state.y)
