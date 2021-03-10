@@ -8,6 +8,9 @@ import math
 import pdb
 import sys
 
+from map import Map, Obstacle
+from reference_path import ReferencePath
+
 sys.path.append("../../")
 
 # Colors
@@ -16,7 +19,7 @@ CAR_OUTLINE = '#B7950B'
 
 
 class simple_bycicle_model:
-    def __init__(self, reference_path, length, width):
+    def __init__(self, reference_path, length, width, Ts):
 
         # car paramters
         self.length = length
@@ -34,45 +37,39 @@ class simple_bycicle_model:
         self.s = 0.0
 
         # model
-        self.Ts = 0.5
+        self.Ts = Ts
         self.model = None
 
     def model_setup(self):
 
-        model_type = "discrete"  # either 'discrete' or 'continuous'
+        model_type = 'discrete'  # either 'discrete' or 'continuous'
         self.model = do_mpc.model.Model(model_type)
 
         # States struct (optimization variables):
-        pos_x = self.model.set_variable(var_type="_x", var_name="pos_x")
-        pos_y = self.model.set_variable(var_type="_x", var_name="pos_y")
-        psi = self.model.set_variable(var_type="_x", var_name="psi")
-        vel = self.model.set_variable(var_type="_x", var_name="vel")
-        e_y = self.model.set_variable(var_type="_x", var_name="e_y")
-        e_psi = self.model.set_variable(var_type="_x", var_name="e_psi")
+        pos_x = self.model.set_variable(var_type='_x', var_name='pos_x')
+        pos_y = self.model.set_variable(var_type='_x', var_name='pos_y')
+        psi = self.model.set_variable(var_type='_x', var_name='psi')
+        vel = self.model.set_variable(var_type='_x', var_name='vel')
+        e_y = self.model.set_variable(var_type='_x', var_name='e_y')
+        e_psi = self.model.set_variable(var_type='_x', var_name='e_psi')
 
         # Input struct (optimization variables):
-        acc = self.model.set_variable(var_type="_u", var_name="acc")
-        delta = self.model.set_variable(var_type="_u", var_name="delta")
+        acc = self.model.set_variable(var_type='_u', var_name='acc')
+        delta = self.model.set_variable(var_type='_u', var_name='delta')
 
         # reference data
         # using time-varing parameters data type
-        x_ref = self.model.set_variable(var_type="_tvp", var_name="x_ref")
-        y_ref = self.model.set_variable(var_type="_tvp", var_name="y_ref")
-        psi_ref = self.model.set_variable(var_type="_tvp", var_name="psi_ref")
-        vel_ref = self.model.set_variable(var_type="_tvp", var_name="vel_ref")
-        e_y_ref = self.model.set_variable(var_type="_tvp", var_name="e_y_ref")
-        e_psi_ref = self.model.set_variable(
-            var_type="_tvp", var_name="e_psi_ref")
-        acc_ref = self.model.set_variable(var_type="_tvp", var_name="acc_ref")
-        delta_ref = self.model.set_variable(
-            var_type="_tvp", var_name="delta_ref")
+        x_ref = self.model.set_variable(var_type='_tvp', var_name='x_ref')
+        y_ref = self.model.set_variable(var_type='_tvp', var_name='y_ref')
+        psi_ref = self.model.set_variable(var_type='_tvp', var_name='psi_ref')
+        vel_ref = self.model.set_variable(var_type='_tvp', var_name='vel_ref')
 
-        self.model.set_rhs("pos_x", vel * cos(psi))
-        self.model.set_rhs("pos_y", vel * sin(psi))
-        self.model.set_rhs("psi", vel / self.length * tan(delta))
-        self.model.set_rhs("vel", acc)
-        self.model.set_rhs("e_y", vel * sin(e_y))
-        self.model.set_rhs("e_psi", vel / self.length * tan(delta))
+        self.model.set_rhs('pos_x', vel * cos(psi))
+        self.model.set_rhs('pos_y', vel * sin(psi))
+        self.model.set_rhs('psi', vel / self.length * tan(delta))
+        self.model.set_rhs('vel', acc)
+        self.model.set_rhs('e_y', vel * sin(e_y))
+        self.model.set_rhs('e_psi', vel / self.length * tan(delta))
 
         self.model.setup()
         return self.model
