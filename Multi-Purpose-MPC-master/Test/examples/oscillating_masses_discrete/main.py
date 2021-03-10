@@ -20,6 +20,10 @@
 #   You should have received a copy of the GNU General Public License
 #   along with do-mpc.  If not, see <http://www.gnu.org/licenses/>.
 
+from template_simulator import template_simulator
+from template_mpc import template_mpc
+from template_model import template_model
+import do_mpc
 import numpy as np
 import matplotlib.pyplot as plt
 from casadi import *
@@ -28,22 +32,21 @@ import pdb
 import sys
 import time
 sys.path.append('../../')
-import do_mpc
-
-from template_model import template_model
-from template_mpc import template_mpc
-from template_simulator import template_simulator
 
 
 """ User settings: """
-show_animation = True
+show_animation = False
 store_results = False
 
 """
 Get configured do-mpc modules:
 """
-model = template_model()
-mpc = template_mpc(model)
+template_model = template_model()
+model = template_model.init()
+
+template_model = template_mpc(model)
+mpc = template_model.init()
+
 simulator = template_simulator(model)
 estimator = do_mpc.estimator.StateFeedback(model)
 
@@ -53,8 +56,8 @@ Set initial state
 """
 np.random.seed(99)
 
-e = np.ones([model.n_x,1])
-x0 = np.random.uniform(-3*e,3*e) # Values between +3 and +3 for all states
+e = np.ones([model.n_x, 1])
+x0 = np.random.uniform(-3*e, 3*e)  # Values between +3 and +3 for all states
 mpc.x0 = x0
 simulator.x0 = x0
 estimator.x0 = x0
@@ -72,6 +75,7 @@ plt.ion()
 """
 Run MPC main loop:
 """
+
 
 for k in range(50):
     u0 = mpc.make_step(x0)

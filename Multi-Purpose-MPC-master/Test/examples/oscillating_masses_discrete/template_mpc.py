@@ -20,48 +20,99 @@
 #   You should have received a copy of the GNU General Public License
 #   along with do-mpc.  If not, see <http://www.gnu.org/licenses/>.
 
+import do_mpc
 import numpy as np
 from casadi import *
 from casadi.tools import *
 import pdb
 import sys
 sys.path.append('../../')
-import do_mpc
 
 
-def template_mpc(model):
+# def template_mpc(model):
+#     """
+#     --------------------------------------------------------------------------
+#     template_mpc: tuning parameters
+#     --------------------------------------------------------------------------
+#     """
+#     mpc = do_mpc.controller.MPC(model)
+
+#     setup_mpc = {
+#         'n_robust': 0,
+#         'n_horizon': 7,
+#         't_step': 0.5,
+#         'state_discretization': 'discrete',
+#         'store_full_solution':True,
+#     }
+
+#     mpc.set_param(**setup_mpc)
+
+#     mterm = model.aux['cost']
+#     lterm = model.aux['cost'] # terminal cost
+
+#     mpc.set_objective(mterm=mterm, lterm=lterm)
+#     mpc.set_rterm(u=1e-4)
+
+#     max_x = np.array([[4.0], [10.0], [4.0], [10.0]])
+
+#     mpc.bounds['lower','_x','x'] = -max_x
+#     mpc.bounds['upper','_x','x'] =  max_x
+
+#     mpc.bounds['lower','_u','u'] = -0.5
+#     mpc.bounds['upper','_u','u'] =  0.5
+
+
+#     mpc.setup()
+
+#     return mpc
+
+class template_mpc:
     """
     --------------------------------------------------------------------------
     template_mpc: tuning parameters
     --------------------------------------------------------------------------
     """
-    mpc = do_mpc.controller.MPC(model)
 
-    setup_mpc = {
-        'n_robust': 0,
-        'n_horizon': 7,
-        't_step': 0.5,
-        'state_discretization': 'discrete',
-        'store_full_solution':True,
-    }
+    def __init__(self, model):
 
-    mpc.set_param(**setup_mpc)
+        self.model = model
 
-    mterm = model.aux['cost']
-    lterm = model.aux['cost'] # terminal cost
+        self.mpc = do_mpc.controller.MPC(model)
 
-    mpc.set_objective(mterm=mterm, lterm=lterm)
-    mpc.set_rterm(u=1e-4)
+        setup_mpc = {
+            'n_robust': 0,
+            'n_horizon': 7,
+            't_step': 0.5,
+            'state_discretization': 'discrete',
+            'store_full_solution': True,
+        }
 
-    max_x = np.array([[4.0], [10.0], [4.0], [10.0]])
+        self.mpc.set_param(**setup_mpc)
 
-    mpc.bounds['lower','_x','x'] = -max_x
-    mpc.bounds['upper','_x','x'] =  max_x
+    def cost_function(self):
 
-    mpc.bounds['lower','_u','u'] = -0.5
-    mpc.bounds['upper','_u','u'] =  0.5
+        mterm = self.model.aux['cost']
+        lterm = self.model.aux['cost']  # terminal cost
 
+        self.mpc.set_objective(mterm=mterm, lterm=lterm)
+        self.mpc.set_rterm(u=1e-4)
 
-    mpc.setup()
+    def constraints(self):
 
-    return mpc
+        max_x = np.array([[4.0], [10.0], [4.0], [10.0]])
+
+        self.mpc.bounds['lower', '_x', 'x'] = -max_x
+        self.mpc.bounds['upper', '_x', 'x'] = max_x
+
+        self.mpc.bounds['lower', '_u', 'u'] = -0.5
+        self.mpc.bounds['upper', '_u', 'u'] = 0.5
+
+    def init(self):
+
+        self.cost_function()
+
+        self.constraints()
+
+        self.mpc.setup()
+
+        return self.mpc
