@@ -3,7 +3,6 @@ import numpy as np
 from casadi import *
 from casadi.tools import *
 import matplotlib.pyplot as plt
-import matplotlib.patches as plt_patches
 import math
 import pdb
 import sys
@@ -12,10 +11,6 @@ from map import Map, Obstacle
 from reference_path import ReferencePath
 
 sys.path.append("../../")
-
-# Colors
-CAR = '#F1C40F'
-CAR_OUTLINE = '#B7950B'
 
 
 class simple_bycicle_model:
@@ -72,7 +67,6 @@ class simple_bycicle_model:
         self.model.set_rhs('e_psi', vel / self.length * tan(delta))
 
         self.model.setup()
-        return self.model
 
     def drive(self):
         """
@@ -105,6 +99,7 @@ class simple_bycicle_model:
         length_cum = np.cumsum(self.reference_path.segment_lengths)
         # Get first index with distance larger than distance traveled by car
         # so far
+
         greater_than_threshold = length_cum > self.s
         next_wp_id = greater_than_threshold.searchsorted(True)
         # Get previous index
@@ -120,43 +115,3 @@ class simple_bycicle_model:
         else:
             self.wp_id = prev_wp_id
             self.current_waypoint = self.reference_path.waypoints[prev_wp_id]
-
-    def show(self):
-        """
-        Display car on current axis.
-        """
-
-        # Get car's center of gravity
-        cog = (self.model.x['pos_x'], self.model.x['pos_y'])
-        # Get current angle with respect to x-axis
-        yaw = np.rad2deg(self.model.x['psi'])
-        # Draw rectangle
-        car = plt_patches.Rectangle(
-            cog,
-            width=self.length,
-            height=self.width,
-            angle=yaw,
-            facecolor=CAR,
-            edgecolor=CAR_OUTLINE,
-            zorder=20,
-        )
-
-        # Shift center rectangle to match center of the car
-        car.set_x(
-            car.get_x()
-            - (
-                self.length / 2 * np.cos(self.model.x['psi'])
-                - self.width / 2 * np.sin(self.model.x['psi'])
-            )
-        )
-        car.set_y(
-            car.get_y()
-            - (
-                self.width / 2 * np.cos(self.model.x['psi'])
-                + self.length / 2 * np.sin(self.model.x['psi'])
-            )
-        )
-
-        # Add rectangle to current axis
-        ax = plt.gca()
-        ax.add_patch(car)
