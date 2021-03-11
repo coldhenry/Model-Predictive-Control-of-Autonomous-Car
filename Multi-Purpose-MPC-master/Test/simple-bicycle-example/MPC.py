@@ -3,6 +3,7 @@ import numpy as np
 from casadi import *
 from casadi.tools import *
 import matplotlib.pyplot as plt
+import matplotlib.patches as plt_patches
 import pdb
 import sys
 
@@ -10,18 +11,24 @@ sys.path.append("../../")
 
 # Colors
 PREDICTION = '#BA4A00'
+CAR = '#F1C40F'
+CAR_OUTLINE = '#B7950B'
 
 
 class MPC:
-    def __init__(self, model):
+    def __init__(self, vehicle):
 
-        self.model = model
+        self.vehicle = vehicle
+        self.model = vehicle.model
+
         self.horizon = 30
         self.Ts = 0.05
+        self.length = 0.12
+        self.width = 0.06
 
         self.current_prediction = None
 
-        self.mpc = do_mpc.controller.MPC(model)
+        self.mpc = do_mpc.controller.MPC(self.model)
         setup_mpc = {
             'n_robust': 0,
             'n_horizon': self.horizon,
@@ -45,13 +52,15 @@ class MPC:
 
         for k in range(self.horizon):
             # extract information from current waypoint
-            current_waypoint = self.model.reference_path.get_waypoint(
-                self.model.wp_id + k
+            current_waypoint = self.vehicle.reference_path.get_waypoint(
+                self.vehicle.wp_id + k
             )
+            print("v_ref: ", current_waypoint.v_ref)
             self.tvp_template['_tvp', k, 'x_ref'] = current_waypoint.x
             self.tvp_template['_tvp', k, 'y_ref'] = current_waypoint.y
             self.tvp_template['_tvp', k, 'psi_ref'] = current_waypoint.psi
-            self.tvp_template['_tvp', k, 'vel_ref'] = current_waypoint.v_ref
+            # BUG: it's NONE in the beginning
+            # self.tvp_template['_tvp', k, 'vel_ref'] = current_waypoint.v_ref
 
             return self.tvp_template
 
@@ -88,9 +97,9 @@ class MPC:
         self.mpc.bounds['lower', '_u', 'acc'] = -1
         self.mpc.bounds['upper', '_u', 'acc'] = 1
         self.mpc.bounds['lower', '_u', 'delta'] = - \
-            np.tan(delta_max) / self.model.length
+            np.tan(delta_max) / self.length
         self.mpc.bounds['upper', '_u', 'delta'] = np.tan(
-            delta_max) / self.model.length
+            delta_max) / self.length
 
         if reset is True:
             self.mpc.setup()
@@ -98,7 +107,7 @@ class MPC:
     def get_control(self, x0):
 
         # update current waypoint
-        self.model.get_current_waypoint()
+        self.vehicle.get_current_waypoint()
 
         # solve optization problem
         u0 = self.mpc.make_step(x0)
@@ -125,8 +134,8 @@ class MPC:
         # Iterate over prediction horizon
         for n in range(2, self.horizon):
             # Get associated waypoint
-            waypoint = self.model.reference_path.\
-                get_waypoint(self.model.wp_id+n)
+            waypoint = self.vehicle.reference_path.\
+                get_waypoint(self.vehicle.wp_id+n)
 
             # Save predicted coordinates in world coordinate frame
             x_pred.append(waypoint.x)
@@ -142,3 +151,46 @@ class MPC:
         if self.current_prediction is not None:
             plt.scatter(self.current_prediction[0], self.current_prediction[1],
                         c=PREDICTION, s=30)
+
+    def show(self):
+        """
+        Display car on current axis.
+        """
+
+        states = self.mpc.data['_x'][0]
+        x, y, psi = states[0], states[1], states[2]
+
+        # Get car's center of gravity
+        cog = (x, y)
+        # Get current angle with respect to x-axis
+        yaw = np.rad2deg(psi)
+        # Draw rectangle
+        car = plt_patches.Rectangle(
+            cog,
+            width=self.length,
+            height=self.width,
+            angle=yaw,
+            facecolor=CAR,
+            edgecolor=CAR_OUTLINE,
+            zorder=20,
+        )
+
+        # Shift center rectangle to match center of the car
+        car.set_x(
+            car.get_x()
+            - (
+                self.length / 2 * np.cos(psi)
+                - self.width / 2 * np.sin(psi)
+            )
+        )
+        car.set_y(
+            car.get_y()
+            - (
+                self.width / 2 * np.cos(psi)
+                + self.length / 2 * np.sin(psi)
+            )
+        )
+
+        # Add rectangle to current axis
+        ax = plt.gca()
+        ax.add_patch(car)
