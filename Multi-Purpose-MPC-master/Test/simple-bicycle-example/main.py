@@ -55,10 +55,13 @@ if use_obstacles:
 Get configured do-mpc modules:
 """
 # model setup
-model = simple_bycicle_model(length=0.12, width=0.06,
-                             reference_path=reference_path, Ts=0.05).model_setup()
-mpc = MPC(model).mpc
-estimator = do_mpc.estimator.StateFeedback(model)
+vehicle = simple_bycicle_model(length=0.12, width=0.06,
+                               reference_path=reference_path, Ts=0.05)
+vehicle.model_setup()
+model = vehicle.model
+
+controller = MPC(vehicle)
+mpc = controller.mpc
 
 # Compute speed profile
 ay_max = 4.0  # m/s^2
@@ -66,7 +69,7 @@ a_min = -0.1  # m/s^2
 a_max = 0.5  # m/s^2
 SpeedProfileConstraints = {'a_min': a_min, 'a_max': a_max,
                            'v_min': 0.0, 'v_max': 1.0, 'ay_max': ay_max}
-model.reference_path.compute_speed_profile(SpeedProfileConstraints)
+vehicle.reference_path.compute_speed_profile(SpeedProfileConstraints)
 
 """
 Set initial state
@@ -95,13 +98,14 @@ y_log = [model.x['pos_y']]
 v_log = [0.0]
 
 # Until arrival at end of path
-while model.s < reference_path.length:
+#vehicle.s < reference_path.length
+while 1:
 
     # Get control signals
-    u = mpc.get_control()
+    u = controller.get_control(x0)
 
     # Simulate car
-    model.drive(u)
+    vehicle.drive()
 
     # Log car state
     x_log.append(model.x['pos_x'])
@@ -109,20 +113,20 @@ while model.s < reference_path.length:
     v_log.append(model.x['vel'])
 
     # Increment simulation time
-    t += model.Ts
+    t += vehicle.Ts
 
     # Plot path and drivable area
     reference_path.show()
 
     # Plot car
-    model.show()
+    controller.show()
 
     # Plot MPC prediction
-    mpc.show_prediction()
+    controller.show_prediction()
 
     # Set figure title
-    plt.title('MPC Simulation: acc(t): {:.2f}, delta(t): {:.2f}, Duration: '
-              '{:.2f} s'.format(u[0], u[1], t))
+#     plt.title('MPC Simulation: acc(t): {:.2f}, delta(t): {:.2f}, Duration: '
+#               '{:.2f} s'.format(u[0], u[1], t))
     plt.axis('off')
     plt.pause(0.001)
 
