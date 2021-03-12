@@ -65,7 +65,8 @@ model = vehicle.model
 controller = MPC(vehicle)
 mpc = controller.mpc
 
-simulator = Simulator(model)
+sim_instance = Simulator(vehicle)
+simulator = sim_instance.simulator
 
 # Compute speed profile
 ay_max = 4.0  # m/s^2
@@ -137,7 +138,9 @@ while 1:
 
     states = simulator.data['_x'][0]
     x, y, psi, vel = states[0], states[1], states[2], states[3]
-    print("simulator: ", simulator.data['_x'])
+
+    print("now states: ", states)
+
     # Log car state
     x_log.append(x)
     y_log.append(y)
@@ -150,7 +153,7 @@ while 1:
     reference_path.show()
 
     # Plot car
-    controller.show()
+    sim_instance.show()
 
     # Plot MPC prediction
     controller.show_prediction()
