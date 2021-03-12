@@ -83,14 +83,14 @@ class MPC:
         self.mpc.bounds['upper', '_x', 'pos_x'] = np.inf
         self.mpc.bounds['lower', '_x', 'pos_y'] = -np.inf
         self.mpc.bounds['upper', '_x', 'pos_y'] = np.inf
-        self.mpc.bounds['lower', '_x', 'psi'] = -np.inf
-        self.mpc.bounds['upper', '_x', 'psi'] = np.inf
+        self.mpc.bounds['lower', '_x', 'psi'] = -2*np.pi
+        self.mpc.bounds['upper', '_x', 'psi'] = 2*np.pi
         self.mpc.bounds['lower', '_x', 'vel'] = vel_bound[0]
         self.mpc.bounds['upper', '_x', 'vel'] = vel_bound[1]
         self.mpc.bounds['lower', '_x', 'e_y'] = e_y_bound[0]
         self.mpc.bounds['upper', '_x', 'e_y'] = e_y_bound[1]
-        self.mpc.bounds['lower', '_x', 'e_psi'] = -np.inf
-        self.mpc.bounds['upper', '_x', 'e_psi'] = np.inf
+        self.mpc.bounds['lower', '_x', 'e_psi'] = -2*np.pi
+        self.mpc.bounds['upper', '_x', 'e_psi'] = 2*np.pi
 
         # input constraints
         delta_max = 0.66
@@ -163,46 +163,3 @@ class MPC:
         if self.current_prediction is not None:
             plt.scatter(self.current_prediction[0], self.current_prediction[1],
                         c=PREDICTION, s=30)
-
-    def show(self):
-        """
-        Display car on current axis.
-        """
-
-        states = self.mpc.data['_x'][0]
-        x, y, psi = states[0], states[1], states[2]
-
-        # Get car's center of gravity
-        cog = (x, y)
-        # Get current angle with respect to x-axis
-        yaw = np.rad2deg(psi)
-        # Draw rectangle
-        car = plt_patches.Rectangle(
-            cog,
-            width=self.length,
-            height=self.width,
-            angle=yaw,
-            facecolor=CAR,
-            edgecolor=CAR_OUTLINE,
-            zorder=20,
-        )
-
-        # Shift center rectangle to match center of the car
-        car.set_x(
-            car.get_x()
-            - (
-                self.length / 2 * np.cos(psi)
-                - self.width / 2 * np.sin(psi)
-            )
-        )
-        car.set_y(
-            car.get_y()
-            - (
-                self.width / 2 * np.cos(psi)
-                + self.length / 2 * np.sin(psi)
-            )
-        )
-
-        # Add rectangle to current axis
-        ax = plt.gca()
-        ax.add_patch(car)
