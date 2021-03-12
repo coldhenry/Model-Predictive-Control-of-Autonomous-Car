@@ -11,7 +11,7 @@ def Simulator(model):
 
     simulator = do_mpc.simulator.Simulator(model)
 
-    simulator.set_param(t_step=0.5)
+    simulator.set_param(t_step=0.05)
 
     simulator.setup()
 

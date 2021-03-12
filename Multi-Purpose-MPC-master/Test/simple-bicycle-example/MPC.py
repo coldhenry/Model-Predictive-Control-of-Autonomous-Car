@@ -22,6 +22,8 @@ class MPC:
         self.model = vehicle.model
 
         self.horizon = 30
+        globals.horizon = self.horizon  # for model.py use
+
         self.Ts = 0.05
         self.length = 0.12
         self.width = 0.06
@@ -75,6 +77,7 @@ class MPC:
         # self.mpc.set_rterm(u=1e-4)
 
     def constraints_setup(self, vel_bound=[0.0, 1.0], e_y_bound=[0.0, 1.0], reset=False):
+
         # states constraints
         self.mpc.bounds['lower', '_x', 'pos_x'] = -np.inf
         self.mpc.bounds['upper', '_x', 'pos_x'] = np.inf
