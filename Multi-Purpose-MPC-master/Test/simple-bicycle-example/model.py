@@ -7,6 +7,7 @@ import math
 import pdb
 import sys
 
+import globals
 from map import Map, Obstacle
 from reference_path import ReferencePath
 
@@ -27,9 +28,6 @@ class simple_bycicle_model:
         # waypoint
         self.wp_id = 0
         self.current_waypoint = self.reference_path.waypoints[self.wp_id]
-
-        # distance traveled
-        self.s = 0.0
 
         # model
         self.Ts = Ts
@@ -87,7 +85,7 @@ class simple_bycicle_model:
         # Get first index with distance larger than distance traveled by car
         # so far
 
-        greater_than_threshold = length_cum > self.s
+        greater_than_threshold = length_cum > globals.s
         next_wp_id = greater_than_threshold.searchsorted(True)
         # Get previous index
         prev_wp_id = next_wp_id - 1
@@ -96,7 +94,7 @@ class simple_bycicle_model:
         s_next = length_cum[next_wp_id]
         s_prev = length_cum[prev_wp_id]
 
-        if np.abs(self.s - s_next) < np.abs(self.s - s_prev):
+        if np.abs(globals.s - s_next) < np.abs(globals.s - s_prev):
             self.wp_id = next_wp_id
             self.current_waypoint = self.reference_path.waypoints[next_wp_id]
         else:

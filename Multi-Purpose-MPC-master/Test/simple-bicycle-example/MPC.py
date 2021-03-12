@@ -6,7 +6,7 @@ import matplotlib.pyplot as plt
 import matplotlib.patches as plt_patches
 import pdb
 import sys
-
+import globals
 sys.path.append("../../")
 
 # Colors
@@ -127,7 +127,7 @@ class MPC:
         s_dot = vel * np.cos(e_psi)
 
         # Update distance travelled along reference path
-        self.s += s_dot * self.Ts
+        globals.s += s_dot * self.Ts
 
     def update_prediction(self):
         """

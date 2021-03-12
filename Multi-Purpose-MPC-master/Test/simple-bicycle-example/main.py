@@ -36,7 +36,7 @@ reference_path = ReferencePath(map, wp_x, wp_y, path_resolution,
                                circular=True)
 
 # Add obstacles
-use_obstacles = True
+use_obstacles = False
 if use_obstacles:
     obs1 = Obstacle(cx=0.0, cy=0.0, radius=0.05)
     obs2 = Obstacle(cx=-0.8, cy=-0.5, radius=0.08)
@@ -105,9 +105,8 @@ while 1:
     u = controller.get_control(x0)
 
     # Simulate car
-    vehicle.drive()
+    controller.distance_update()
 
-    print(mpc.data['_x'])
     states = mpc.data['_x'][0]
     x, y, psi, vel = states[0], states[1], states[2], states[3]
 
