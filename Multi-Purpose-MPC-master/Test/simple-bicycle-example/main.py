@@ -1,6 +1,7 @@
 from reference_path import ReferencePath
 from map import Map, Obstacle
 from model import simple_bycicle_model
+from simulator import Simulator
 from MPC import MPC
 import pdb
 import sys
@@ -10,6 +11,7 @@ import numpy as np
 import matplotlib.pyplot as plt
 from casadi import *
 from casadi.tools import *
+import globals
 sys.path.append('../../')
 
 
@@ -63,6 +65,8 @@ model = vehicle.model
 controller = MPC(vehicle)
 mpc = controller.mpc
 
+simulator = Simulator(model)
+
 # Compute speed profile
 ay_max = 4.0  # m/s^2
 a_min = -0.1  # m/s^2
@@ -71,11 +75,33 @@ SpeedProfileConstraints = {'a_min': a_min, 'a_max': a_max,
                            'v_min': 0.0, 'v_max': 1.0, 'ay_max': ay_max}
 vehicle.reference_path.compute_speed_profile(SpeedProfileConstraints)
 
+
+def update_new_bound(mpc, model, ay_max):
+    # Compute dynamic constraints on e_y
+    ub, lb, _ = vehicle.reference_path.update_path_constraints(
+        vehicle.wp_id+1, globals.horizon, 2*vehicle.safety_margin,
+        vehicle.safety_margin)
+
+    upper_e_y = np.mean(ub)
+    lower_e_y = np.mean(lb)
+
+    # Get curvature predictions from previous control signals
+    kappa_pred = np.tan(np.array(mpc.data['_u', 'delta'][0])) / vehicle.length
+
+    # Constrain maximum speed based on predicted car curvature
+    upper_vel = np.sqrt(ay_max / (np.abs(kappa_pred) + 1e-12))
+
+    # reset the boundaries
+    controller.constraints_setup(vel_bound=[0.0, upper_vel], e_y_bound=[
+        lower_e_y, upper_e_y], reset=True)
+
+
 """
 Set initial state
 """
 x0 = np.array([wp_x[0], wp_y[1], 0, 0, 0, 0])
 mpc.x0 = x0
+simulator.x0 = x0
 
 # Use initial state to set the initial guess.
 mpc.set_initial_guess()
@@ -98,18 +124,20 @@ y_log = [wp_y[0]]
 v_log = [0.0]
 
 # Until arrival at end of path
-#vehicle.s < reference_path.length
+# vehicle.s < reference_path.length
 while 1:
 
     # Get control signals
     u = controller.get_control(x0)
+    print("u: ", u)
 
     # Simulate car
+    x0 = simulator.make_step(u)
     controller.distance_update()
 
-    states = mpc.data['_x'][0]
+    states = simulator.data['_x'][0]
     x, y, psi, vel = states[0], states[1], states[2], states[3]
-
+    print("simulator: ", simulator.data['_x'])
     # Log car state
     x_log.append(x)
     y_log.append(y)
@@ -127,9 +155,12 @@ while 1:
     # Plot MPC prediction
     controller.show_prediction()
 
+    # update boundary for the next iteration
+    update_new_bound(mpc, model, ay_max)
+
     # Set figure title
-#     plt.title('MPC Simulation: acc(t): {:.2f}, delta(t): {:.2f}, Duration: '
-#               '{:.2f} s'.format(u[0], u[1], t))
+    # plt.title('MPC Simulation: acc(t): {:.2f}, delta(t): {:.2f}, Duration: '
+    #           '{:.2f} s'.format(u[0], u[1], t))
     plt.axis('off')
     plt.pause(0.001)
 
