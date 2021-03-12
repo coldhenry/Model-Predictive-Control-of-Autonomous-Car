@@ -68,19 +68,6 @@ class simple_bycicle_model:
 
         self.model.setup()
 
-    def drive(self):
-        """
-        Drive.
-        :param u: input vector containing [v, delta]
-        """
-
-        # Compute velocity along path
-        # TODO: need to confirm the equation
-        s_dot = self.model.x['vel'] * np.cos(self.model.x['e_psi'])
-
-        # Update distance travelled along reference path
-        self.s += s_dot * self.Ts
-
     def _compute_safety_margin(self):
         """
         Compute safety margin for car if modeled by its center of gravity.

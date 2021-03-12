@@ -93,8 +93,8 @@ Run MPC main loop:
 t = 0.0
 
 # Logging containers
-x_log = [model.x['pos_x']]
-y_log = [model.x['pos_y']]
+x_log = [wp_x[0]]
+y_log = [wp_y[0]]
 v_log = [0.0]
 
 # Until arrival at end of path
@@ -107,10 +107,14 @@ while 1:
     # Simulate car
     vehicle.drive()
 
+    print(mpc.data['_x'])
+    states = mpc.data['_x'][0]
+    x, y, psi, vel = states[0], states[1], states[2], states[3]
+
     # Log car state
-    x_log.append(model.x['pos_x'])
-    y_log.append(model.x['pos_y'])
-    v_log.append(model.x['vel'])
+    x_log.append(x)
+    y_log.append(y)
+    v_log.append(vel)
 
     # Increment simulation time
     t += vehicle.Ts

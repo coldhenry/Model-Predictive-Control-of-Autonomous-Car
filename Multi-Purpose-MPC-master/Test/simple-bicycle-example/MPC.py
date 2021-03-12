@@ -55,7 +55,6 @@ class MPC:
             current_waypoint = self.vehicle.reference_path.get_waypoint(
                 self.vehicle.wp_id + k
             )
-            print("v_ref: ", current_waypoint.v_ref)
             self.tvp_template['_tvp', k, 'x_ref'] = current_waypoint.x
             self.tvp_template['_tvp', k, 'y_ref'] = current_waypoint.y
             self.tvp_template['_tvp', k, 'psi_ref'] = current_waypoint.psi
@@ -65,7 +64,6 @@ class MPC:
             return self.tvp_template
 
     def objective_function_setup(self):
-        print("model: ", self.model.x['pos_x'])
         lterm = (
             self.model.x['e_y'] ** 2
             + self.model.x['e_psi'] ** 2
@@ -119,6 +117,17 @@ class MPC:
         # self.current_prediction = self.update_prediction()
 
         return np.array([u0[0], u0[1]])
+
+    def distance_update(self):
+        states = self.mpc.data['_x'][0]
+        vel, e_psi = states[2], states[4]
+
+        # Compute velocity along path
+        # TODO: need to confirm the equation
+        s_dot = vel * np.cos(e_psi)
+
+        # Update distance travelled along reference path
+        self.s += s_dot * self.Ts
 
     def update_prediction(self):
         """
