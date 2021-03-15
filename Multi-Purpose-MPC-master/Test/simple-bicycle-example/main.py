@@ -162,7 +162,7 @@ while 1:
 
     # Simulate car
     x0 = simulator.make_step(u)
-    controller.distance_update()
+    controller.distance_update(x0)
 
     # Log car state
     x_log.append(x0[0])

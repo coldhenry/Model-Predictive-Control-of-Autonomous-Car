@@ -60,11 +60,11 @@ class MPC:
             )
             self.tvp_template['_tvp', k, 'x_ref'] = current_waypoint.x
             self.tvp_template['_tvp', k, 'y_ref'] = current_waypoint.y
-            self.tvp_template['_tvp', k, 'psi_ref'] = current_waypoint.psi
-            if current_waypoint.v_ref is not None:
-                self.tvp_template['_tvp', k, 'vel_ref'] = current_waypoint.v_ref
-            else:
-                self.tvp_template['_tvp', k, 'vel_ref'] = 0
+            # self.tvp_template['_tvp', k, 'psi_ref'] = current_waypoint.psi
+            # if current_waypoint.v_ref is not None:
+            #     self.tvp_template['_tvp', k, 'vel_ref'] = current_waypoint.v_ref
+            # else:
+            #     self.tvp_template['_tvp', k, 'vel_ref'] = 0
 
             return self.tvp_template
 
@@ -127,9 +127,8 @@ class MPC:
 
         return np.array([u0[0], u0[1]])
 
-    def distance_update(self):
-        states = self.mpc.data['_x'][0]
-        vel, e_psi = states[2], states[4]
+    def distance_update(self, states):
+        vel, e_psi = states[3], states[5]
 
         # Compute velocity along path
         # TODO: need to confirm the equation
