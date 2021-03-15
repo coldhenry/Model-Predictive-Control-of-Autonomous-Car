@@ -27,11 +27,12 @@ class Simulator:
 
     def tvp_fun(self, t_now):
 
-        x = np.array([5 for i in range(self.horizon+1)])
-        y = np.array([5 for i in range(self.horizon+1)])
-
         for k in range(self.horizon+1):
-            self.tvp_template['ref_x'] = x[k]
-            self.tvp_template['ref_y'] = y[k]
+            # extract information from current waypoint
+            current_waypoint = self.vehicle.reference_path.get_waypoint(
+                self.vehicle.wp_id + k
+            )
+            self.tvp_template['ref_x'] = current_waypoint.x
+            self.tvp_template['ref_y'] = current_waypoint.y
 
         return self.tvp_template
