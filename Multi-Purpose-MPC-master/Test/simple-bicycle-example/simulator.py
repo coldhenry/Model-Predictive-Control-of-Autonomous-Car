@@ -46,12 +46,10 @@ class Simulator:
 
         return self.tvp_template
 
-    def show(self):
-        """
+    def show(self, states):
+        '''
         Display car on current axis.
-        """
-
-        states = self.simulator.data['_x'][0]
+        '''
         x, y, psi = states[0], states[1], states[2]
 
         # Get car's center of gravity
