@@ -6,6 +6,7 @@ import matplotlib.pyplot as plt
 import matplotlib.patches as plt_patches
 import pdb
 import sys
+import globals
 sys.path.append("../../")
 
 # Colors
@@ -17,15 +18,15 @@ CAR_OUTLINE = '#B7950B'
 class MPC:
     def __init__(self, vehicle):
 
+        # vehicle information
         self.vehicle = vehicle
         self.model = vehicle.model
-
-        self.horizon = 30
-
-        self.Ts = 0.05
         self.length = 0.12
         self.width = 0.06
 
+        # mpc configuration
+        self.horizon = 20
+        self.Ts = 0.05
         self.mpc = do_mpc.controller.MPC(self.model)
         # 'n_robust': 1,
         setup_mpc = {
@@ -49,28 +50,26 @@ class MPC:
 
     def tvp_fun(self, t_now):
 
-        x = np.array([5 for i in range(self.horizon+1)])
-        y = np.array([5 for i in range(self.horizon+1)])
-
         for k in range(self.horizon+1):
-            self.tvp_template['_tvp', k, 'ref_x'] = x[k]
-            self.tvp_template['_tvp', k, 'ref_y'] = y[k]
+            # extract information from current waypoint
+            current_waypoint = self.vehicle.reference_path.get_waypoint(
+                self.vehicle.wp_id + k
+            )
+            print("cwp: {}, {}".format(current_waypoint.x, current_waypoint.y))
+            self.tvp_template['_tvp', k, 'ref_x'] = current_waypoint.x
+            self.tvp_template['_tvp', k, 'ref_y'] = current_waypoint.y
 
         return self.tvp_template
 
     def objective_function_setup(self):
-        lterm = (
-            (self.model.x['pos_x'] - self.model.tvp['ref_x']) ** 2
-            + (self.model.x['pos_y'] - self.model.tvp['ref_y']) ** 2
-            + self.model.x['e_y'] ** 2
-            + self.model.x['e_psi'] ** 2
-            + (self.model.x['vel'] - 1) ** 2
-        )
+        lterm = (self.model.aux['e_y'] ** 2 + self.model.aux['e_psi'] ** 2)
 
-        mterm = lterm
+        mterm = (
+            (self.model.x['pos_x'] - self.model.tvp['ref_x']) ** 2
+            + (self.model.x['pos_y'] - self.model.tvp['ref_y']) ** 2)
 
         self.mpc.set_objective(mterm=mterm, lterm=lterm)
-        self.mpc.set_rterm(acc=1e2, delta=1e2)
+        self.mpc.set_rterm(acc=1e-2, delta=1e-2)
 
     def constraints_setup(self, vel_bound=[0.0, 1.0], e_y_bound=[0.0, 1.0], reset=False):
 
@@ -81,12 +80,8 @@ class MPC:
         self.mpc.bounds['upper', '_x', 'pos_y'] = np.inf
         self.mpc.bounds['lower', '_x', 'psi'] = -2*np.pi
         self.mpc.bounds['upper', '_x', 'psi'] = 2*np.pi
-        self.mpc.bounds['lower', '_x', 'vel'] = -5
+        self.mpc.bounds['lower', '_x', 'vel'] = 0
         self.mpc.bounds['upper', '_x', 'vel'] = 5
-        self.mpc.bounds['lower', '_x', 'e_y'] = -50
-        self.mpc.bounds['upper', '_x', 'e_y'] = 50
-        self.mpc.bounds['lower', '_x', 'e_psi'] = -2*np.pi
-        self.mpc.bounds['upper', '_x', 'e_psi'] = 2*np.pi
 
         # input constraints
         delta_max = 0.66
@@ -101,9 +96,21 @@ class MPC:
         if reset is True:
             self.mpc.setup()
 
-    def get_control(self, x0):
+    # def get_control(self, x0):
 
-        # solve optization problem
-        u0 = self.mpc.make_step(x0)
+    #     # solve optization problem
+    #     u0 = self.mpc.make_step(x0)
 
-        return np.array([u0[0], u0[1]])
+    #     return np.array([u0[0], u0[1]])
+
+    def distance_update(self, x0):
+
+        vel, e_psi = x0[3], self.mpc.data['_aux', 'e_psi'][0]
+
+        # Compute velocity along path
+        # TODO: need to confirm the equation
+        s_dot = vel * np.cos(e_psi)
+
+        # Update distance travelled along reference path
+        globals.s += s_dot * self.Ts
+        print("traveled distance: ", globals.s)
