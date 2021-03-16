@@ -77,7 +77,8 @@ vehicle.reference_path.compute_speed_profile(SpeedProfileConstraints)
 Set initial state
 """
 
-x0 = x0 = np.array([wp_x[0], wp_y[0], -0.5, 0.2])
+x0 = np.array([vehicle.reference_path.waypoints[0].x, vehicle.reference_path.waypoints[0].y,
+               0, 0])
 mpc.x0 = x0
 simulator.x0 = x0
 
