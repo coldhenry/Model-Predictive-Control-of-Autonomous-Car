@@ -11,6 +11,7 @@ from casadi.tools import *
 import pdb
 import sys
 import time
+import globals
 sys.path.append('../../')
 
 
@@ -76,7 +77,7 @@ vehicle.reference_path.compute_speed_profile(SpeedProfileConstraints)
 Set initial state
 """
 
-x0 = x0 = np.array([wp_x[0], wp_y[0], 0, 0])
+x0 = x0 = np.array([wp_x[0], wp_y[0], -0.5, 0.2])
 mpc.x0 = x0
 simulator.x0 = x0
 
@@ -94,8 +95,8 @@ plt.ion()
 Run MPC main loop:
 """
 
-
-for k in range(150):
+k = 0
+while globals.s < reference_path.length:
     vehicle.get_current_waypoint()
     print("======= wp_id ======== ", vehicle.wp_id)
     u0 = mpc.make_step(x0)
@@ -103,12 +104,21 @@ for k in range(150):
     controller.distance_update(x0)
 
     if show_animation:
+
+        # Plot path and drivable area
+        reference_path.show(wp=vehicle.current_waypoint)
+        vehicle.show(x0)
+        plt.axis('off')
+        plt.pause(0.001)
+        plt.show()
+
         graphics.plot_results(t_ind=k)
         graphics.plot_predictions(t_ind=k)
         graphics.reset_axes()
         plt.show()
         plt.pause(0.01)
 
+    k += 1
 
 input('Press any key to exit.')
 
