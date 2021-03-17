@@ -69,14 +69,14 @@ class MPC:
     def objective_function_setup(self):
         lterm = ((self.model.aux['e_y'] ** 2 + self.model.aux['e_psi'] ** 2) + ((self.model.x['pos_x'] - self.model.tvp['x_ref']) ** 2
                 + (self.model.x['pos_y'] - self.model.tvp['y_ref']) ** 2
-                + 2 * (self.model.aux['psi_cost']) ** 2
+                + 5 * (self.model.aux['psi_cost']) ** 2
                 + (self.model.x['vel'] - self.model.tvp['vel_ref']) ** 2))
         mterm = (((self.model.x['pos_x'] - self.model.tvp['x_ref']) ** 2
                 + (self.model.x['pos_y'] - self.model.tvp['y_ref']) ** 2
                 + (self.model.x['vel'] - self.model.tvp['vel_ref']) ** 2))
 
         self.mpc.set_objective(mterm=mterm, lterm=lterm)
-        self.mpc.set_rterm(acc=0.1, delta=0.1)
+        self.mpc.set_rterm(acc=0.1, delta=0.01)
 
     def constraints_setup(
         self, vel_bound=[0.0, 1.0], e_y_bound=[0.0, 1.0], reset=False
