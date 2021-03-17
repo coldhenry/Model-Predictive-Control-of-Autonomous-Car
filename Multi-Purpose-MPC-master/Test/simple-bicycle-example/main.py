@@ -24,22 +24,7 @@ store_results = False
 map = Map(file_path='maps/sim_map.png', origin=[-1, -2], resolution=0.005)
 
 # Specify waypoints
-wp_x = [
-    -0.75,
-    -0.25,
-    -0.25,
-    0.25,
-    0.25,
-    1.25,
-    1.25,
-    0.75,
-    0.75,
-    1.25,
-    1.25,
-    -0.75,
-    -0.75,
-    -0.25,
-]
+wp_x = [-0.75, -0.25, -0.25, 0.25, 0.25, 1.25, 1.25, 0.75, 0.75, 1.25, 1.25, -0.75, -0.75, -0.25]
 wp_y = [-1.5, -1.5, -0.5, -0.5, -1.5, -1.5, -1, -1, -0.5, -0.5, 0, 0, -1.5, -1.5]
 
 # Specify path resolution
@@ -128,7 +113,7 @@ def update_new_bound(mpc, model, ay_max):
 '''
 Set initial state
 '''
-x0 = np.array([wp_x[0], wp_y[1], 0, 0, 0, 0])
+x0 = np.array([vehicle.reference_path.waypoints[0].x, vehicle.reference_path.waypoints[0].y, 0, 0])
 mpc.x0 = x0
 simulator.x0 = x0
 
@@ -148,17 +133,22 @@ Run MPC main loop:
 t = 0.0
 
 # Logging containers
-x_log = [wp_x[0]]
-y_log = [wp_y[0]]
+x_log = [x0[0]]
+y_log = [x0[0]]
 v_log = [0.0]
 
 # Until arrival at end of path
 # vehicle.s < reference_path.length
 while 1:
-
     # Get control signals
     u = controller.get_control(x0)
-    print("Waypoint ID: ", vehicle.wp_id)
+    print("=========================")
+    print("delta: ", u[1])
+    print("psi: ", x0[2])
+    print("psi_ref: ", vehicle.reference_path.waypoints[vehicle.wp_id].psi)
+    print("x: ", x0[0])
+    print("x_ref: ", vehicle.reference_path.waypoints[vehicle.wp_id].x)
+    print("=========================")
 
     # Simulate car
     x0 = simulator.make_step(u)
@@ -173,7 +163,7 @@ while 1:
     t += vehicle.Ts
 
     # Plot path and drivable area
-    reference_path.show()
+    reference_path.show(id=vehicle.wp_id)
 
     # Plot car
     sim_instance.show(x0)

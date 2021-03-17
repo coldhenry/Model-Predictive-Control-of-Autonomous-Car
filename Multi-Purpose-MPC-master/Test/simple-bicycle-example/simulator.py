@@ -18,7 +18,6 @@ CAR_OUTLINE = '#B7950B'
 class Simulator:
 
     def __init__(self, vehicle):
-
         self.vehicle = vehicle
         self.simulator = do_mpc.simulator.Simulator(vehicle.model)
 
@@ -31,7 +30,6 @@ class Simulator:
         self.simulator.setup()
 
     def tvp_fun(self, t_now):
-
         # extract information from current waypoint
         current_waypoint = self.vehicle.reference_path.get_waypoint(
             self.vehicle.wp_id

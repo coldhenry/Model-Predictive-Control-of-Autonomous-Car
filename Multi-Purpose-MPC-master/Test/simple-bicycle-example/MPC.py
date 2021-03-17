@@ -18,7 +18,6 @@ CAR_OUTLINE = '#B7950B'
 
 class MPC:
     def __init__(self, vehicle):
-
         self.vehicle = vehicle
         self.model = vehicle.model
 
@@ -52,7 +51,6 @@ class MPC:
         self.mpc.setup()
 
     def tvp_fun(self, t_now):
-
         for k in range(self.horizon):
             # extract information from current waypoint
             current_waypoint = self.vehicle.reference_path.get_waypoint(
@@ -60,27 +58,26 @@ class MPC:
             )
             self.tvp_template['_tvp', k, 'x_ref'] = current_waypoint.x
             self.tvp_template['_tvp', k, 'y_ref'] = current_waypoint.y
-            # self.tvp_template['_tvp', k, 'psi_ref'] = current_waypoint.psi
-            # if current_waypoint.v_ref is not None:
-            #     self.tvp_template['_tvp', k, 'vel_ref'] = current_waypoint.v_ref
-            # else:
-            #     self.tvp_template['_tvp', k, 'vel_ref'] = 0
+            self.tvp_template['_tvp', k, 'psi_ref'] = current_waypoint.psi
+            if current_waypoint.v_ref is not None:
+                self.tvp_template['_tvp', k, 'vel_ref'] = current_waypoint.v_ref
+            else:
+                self.tvp_template['_tvp', k, 'vel_ref'] = 0
 
-            return self.tvp_template
+        return self.tvp_template
 
     def objective_function_setup(self):
-        lterm = (
-            (self.model.x['pos_x'] - self.model.tvp['x_ref']) ** 2
-            + (self.model.x['pos_y'] - self.model.tvp['y_ref']) ** 2
-            + (self.model.x['psi'] - self.model.tvp['psi_ref']) ** 2
-            + (self.model.x['vel'] - self.model.tvp['vel_ref']) ** 2
-            + self.model.x['e_y'] ** 2
-            + self.model.x['e_psi'] ** 2
-        )
-        mterm = lterm
+        lterm = (self.model.aux['e_y'] ** 2 + self.model.aux['e_psi'] ** 2) + ((self.model.x['pos_x'] - self.model.tvp['x_ref']) ** 2
+                + (self.model.x['pos_y'] - self.model.tvp['y_ref']) ** 2
+                + (self.model.x['psi'] - self.model.tvp['psi_ref']) ** 2
+                + (self.model.x['vel'] - self.model.tvp['vel_ref']) ** 2)
+        mterm = ((self.model.x['pos_x'] - self.model.tvp['x_ref']) ** 2
+                + (self.model.x['pos_y'] - self.model.tvp['y_ref']) ** 2
+                + (self.model.x['psi'] - self.model.tvp['psi_ref']) ** 2
+                + (self.model.x['vel'] - self.model.tvp['vel_ref']) ** 2)
 
         self.mpc.set_objective(mterm=mterm, lterm=lterm)
-        self.mpc.set_rterm(acc=1e-4, delta=1e-4)
+        self.mpc.set_rterm(acc=0.1, delta=0.1)
 
     def constraints_setup(
         self, vel_bound=[0.0, 1.0], e_y_bound=[0.0, 1.0], reset=False
@@ -91,22 +88,24 @@ class MPC:
         self.mpc.bounds['upper', '_x', 'pos_x'] = np.inf
         self.mpc.bounds['lower', '_x', 'pos_y'] = -np.inf
         self.mpc.bounds['upper', '_x', 'pos_y'] = np.inf
-        self.mpc.bounds['lower', '_x', 'psi'] = -2 * np.pi
+        self.mpc.bounds['lower', '_x', 'psi'] = - 2 * np.pi
         self.mpc.bounds['upper', '_x', 'psi'] = 2 * np.pi
         self.mpc.bounds['lower', '_x', 'vel'] = vel_bound[0]
         self.mpc.bounds['upper', '_x', 'vel'] = vel_bound[1]
-        self.mpc.bounds['lower', '_x', 'e_y'] = e_y_bound[0]
-        self.mpc.bounds['upper', '_x', 'e_y'] = e_y_bound[1]
-        self.mpc.bounds['lower', '_x', 'e_psi'] = -2 * np.pi
-        self.mpc.bounds['upper', '_x', 'e_psi'] = 2 * np.pi
+        # self.mpc.bounds['lower', '_x', 'e_y'] = e_y_bound[0]
+        # self.mpc.bounds['upper', '_x', 'e_y'] = e_y_bound[1]
+        # self.mpc.bounds['lower', '_x', 'e_psi'] = -2 * np.pi
+        # self.mpc.bounds['upper', '_x', 'e_psi'] = 2 * np.pi
 
         # input constraints
         delta_max = 0.66
 
-        self.mpc.bounds['lower', '_u', 'acc'] = -1
-        self.mpc.bounds['upper', '_u', 'acc'] = 1
-        self.mpc.bounds['lower', '_u', 'delta'] = -np.tan(delta_max) / self.length
-        self.mpc.bounds['upper', '_u', 'delta'] = np.tan(delta_max) / self.length
+        self.mpc.bounds['lower', '_u', 'acc'] = -0.5
+        self.mpc.bounds['upper', '_u', 'acc'] = 0.5
+        # self.mpc.bounds['lower', '_u', 'delta'] = - np.tan(delta_max) / self.length
+        # self.mpc.bounds['upper', '_u', 'delta'] = np.tan(delta_max) / self.length
+        self.mpc.bounds['lower', '_u', 'delta'] = -0.8
+        self.mpc.bounds['upper', '_u', 'delta'] = 0.8
 
         if reset is True:
             self.mpc.setup()
@@ -128,11 +127,11 @@ class MPC:
         return np.array([u0[0], u0[1]])
 
     def distance_update(self, states):
-        vel, e_psi = states[3], states[5]
+        vel, psi = states[3], states[2]
 
         # Compute velocity along path
         # TODO: need to confirm the equation
-        s_dot = vel * np.cos(e_psi)
+        s_dot = vel * np.cos(psi - self.mpc.data['_tvp', 'psi_ref'][0])
 
         # Update distance travelled along reference path
         globals.s += s_dot * self.Ts

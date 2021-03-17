@@ -370,7 +370,7 @@ class ReferencePath:
 
         return self.waypoints[wp_id]
 
-    def show(self, display_drivable_area=True):
+    def show(self, id=id, display_drivable_area=True):
         """
         Display path object on current figure.
         :param display_drivable_area: If True, display arrows indicating width
@@ -411,6 +411,10 @@ class ReferencePath:
         # Plot waypoints
         # colors = [wp.v_ref for wp in self.waypoints]
         plt.scatter(wp_x, wp_y, c=WAYPOINTS, s=10)
+
+        curr_x = self.waypoints[id].x
+        curr_y = self.waypoints[id].y
+        plt.plot(curr_x, curr_y, 'ro')
 
         # Plot arrows indicating drivable area
         if display_drivable_area:
