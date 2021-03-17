@@ -184,8 +184,7 @@ class ReferencePath:
                 prev_wp = np.array(waypoint_coordinates[wp_id - 1])
                 dif_behind = current_wp - prev_wp
                 angle_behind = np.arctan2(dif_behind[1], dif_behind[0])
-                angle_dif = np.mod(psi - angle_behind + math.pi, 2 * math.pi) \
-                    - math.pi
+                angle_dif = np.mod(psi - angle_behind + np.pi, 2 * np.pi) - np.pi
                 kappa = angle_dif / (dist_ahead + self.eps)
 
             waypoints.append(Waypoint(x, y, psi, kappa))
@@ -218,11 +217,11 @@ class ReferencePath:
             for i, dir in enumerate(['left', 'right']):
                 # Get angle orthogonal to path in current direction
                 if dir == 'left':
-                    angle = np.mod(wp.psi + math.pi / 2 + math.pi,
-                                   2 * math.pi) - math.pi
+                    angle = np.mod(wp.psi + np.pi / 2 + np.pi,
+                                   2 * np.pi) - np.pi
                 else:
-                    angle = np.mod(wp.psi - math.pi / 2 + math.pi,
-                                   2 * math.pi) - math.pi
+                    angle = np.mod(wp.psi - np.pi / 2 + np.pi,
+                                   2 * np.pi) - np.pi
                 # Get closest cell to orthogonal vector
                 t_x, t_y = self.map.w2m(wp.x + max_width * np.cos(angle), wp.y
                                         + max_width * np.sin(angle))
@@ -607,9 +606,9 @@ class ReferencePath:
 
             # Check sign of upper and lower bound
             angle_ub = np.mod(np.arctan2(ub_ls[1] - wp.y, ub_ls[0] - wp.x)
-                              - wp.psi + math.pi, 2 * math.pi) - math.pi
+                              - wp.psi + np.pi, 2 * np.pi) - np.pi
             angle_lb = np.mod(np.arctan2(lb_ls[1] - wp.y, lb_ls[0] - wp.x)
-                              - wp.psi + math.pi, 2 * math.pi) - math.pi
+                              - wp.psi + np.pi, 2 * np.pi) - np.pi
             sign_ub = np.sign(angle_ub)
             sign_lb = np.sign(angle_lb)
 
@@ -630,10 +629,10 @@ class ReferencePath:
                 ub, lb = 0.0, 0.0
 
             # Compute absolute angle of bound cell
-            angle_ub = np.mod(math.pi / 2 + wp.psi + math.pi,
-                              2 * math.pi) - math.pi
-            angle_lb = np.mod(-math.pi / 2 + wp.psi + math.pi,
-                              2 * math.pi) - math.pi
+            angle_ub = np.mod(np.pi / 2 + wp.psi + np.pi,
+                              2 * np.pi) - np.pi
+            angle_lb = np.mod(-np.pi / 2 + wp.psi + np.pi,
+                              2 * np.pi) - np.pi
             # Compute cell on bound for computed distance ub and lb
             ub_ls = wp.x + ub * np.cos(angle_ub), wp.y + ub * np.sin(
                 angle_ub)

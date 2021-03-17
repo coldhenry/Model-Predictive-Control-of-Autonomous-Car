@@ -143,11 +143,12 @@ while 1:
     # Get control signals
     u = controller.get_control(x0)
     print("=========================")
-    print("delta: ", u[1])
-    print("psi: ", x0[2])
-    print("psi_ref: ", vehicle.reference_path.waypoints[vehicle.wp_id].psi)
-    print("x: ", x0[0])
-    print("x_ref: ", vehicle.reference_path.waypoints[vehicle.wp_id].x)
+    print(controller.mpc.data['_aux', 'psi_cost'][0])
+    # print("delta: ", u[1])
+    # print("psi: ", x0[2])
+    # print("psi_ref: ", vehicle.reference_path.waypoints[vehicle.wp_id].psi)
+    # print("x: ", x0[0])
+    # print("x_ref: ", vehicle.reference_path.waypoints[vehicle.wp_id].x)
     print("=========================")
 
     # Simulate car

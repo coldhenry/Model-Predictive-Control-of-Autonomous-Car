@@ -62,11 +62,14 @@ class simple_bycicle_model:
         # self.model.set_rhs("e_psi", vel / self.length * tan(delta))
 
         # tracking errors (optimization variables):
-        e_psi = psi - psi_ref + vel * delta / self.length * self.Ts
+        e_psi = (fmod(psi - psi_ref + np.pi, 2 * np.pi) - np.pi) + vel * delta / self.length * self.Ts
         e_y = pos_y - y_ref + vel * sin(e_psi) * self.Ts
 
         self.model.set_expression('e_psi', e_psi)
         self.model.set_expression('e_y', e_y)
+
+        psi_cost = (fmod(psi - psi_ref + np.pi, 2 * np.pi) - np.pi)
+        self.model.set_expression('psi_cost', psi_cost)
 
         self.model.setup()
 

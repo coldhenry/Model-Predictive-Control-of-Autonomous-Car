@@ -67,13 +67,12 @@ class MPC:
         return self.tvp_template
 
     def objective_function_setup(self):
-        lterm = np.sqrt((self.model.aux['e_y'] ** 2 + self.model.aux['e_psi'] ** 2) + ((self.model.x['pos_x'] - self.model.tvp['x_ref']) ** 2
+        lterm = ((self.model.aux['e_y'] ** 2 + self.model.aux['e_psi'] ** 2) + ((self.model.x['pos_x'] - self.model.tvp['x_ref']) ** 2
                 + (self.model.x['pos_y'] - self.model.tvp['y_ref']) ** 2
-                + (self.model.x['psi'] - self.model.tvp['psi_ref']) ** 2
+                + 2 * (self.model.aux['psi_cost']) ** 2
                 + (self.model.x['vel'] - self.model.tvp['vel_ref']) ** 2))
-        mterm = np.sqrt(((self.model.x['pos_x'] - self.model.tvp['x_ref']) ** 2
+        mterm = (((self.model.x['pos_x'] - self.model.tvp['x_ref']) ** 2
                 + (self.model.x['pos_y'] - self.model.tvp['y_ref']) ** 2
-                + (self.model.x['psi'] - self.model.tvp['psi_ref']) ** 2
                 + (self.model.x['vel'] - self.model.tvp['vel_ref']) ** 2))
 
         self.mpc.set_objective(mterm=mterm, lterm=lterm)
