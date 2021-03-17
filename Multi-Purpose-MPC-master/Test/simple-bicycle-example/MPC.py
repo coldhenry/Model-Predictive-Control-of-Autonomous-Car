@@ -73,7 +73,6 @@ class MPC:
             + self.model.aux['psi_cost'] ** 2 
             + 10 * (self.model.x['pos_x'] - self.model.tvp['x_ref']) ** 2 
             + 10 * (self.model.x['pos_y'] - self.model.tvp['y_ref']) ** 2)
-            # + (self.model.x['vel'] - self.model.tvp['vel_ref']) ** 2)
 
         mterm = (
             self.model.x['pos_x'] - self.model.tvp['x_ref'] ** 2 
@@ -81,7 +80,7 @@ class MPC:
             + (self.model.x['vel'] - self.model.tvp['vel_ref']) ** 2)
 
         self.mpc.set_objective(mterm=mterm, lterm=lterm)
-        self.mpc.set_rterm(delta=0.01)
+        self.mpc.set_rterm(acc=0.01, delta=0.01)
 
     def constraints_setup(
         self, vel_bound=[0.0, 1.0], e_y_bound=[0.0, 1.0], reset=False
