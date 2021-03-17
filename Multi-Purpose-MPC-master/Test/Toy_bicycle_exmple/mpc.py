@@ -33,7 +33,7 @@ class MPC:
         # self.mpc.set_param(nlpsol_opts={'ipopt.linear_solver': 'MA27'})
 
         setup_mpc = {
-            'n_robust': 0,
+            'n_robust': 3,
             'n_horizon': self.horizon,
             't_step': self.Ts,
             'state_discretization': 'collocation',
@@ -69,7 +69,7 @@ class MPC:
         lterm = (
             10 * (self.model.x['pos_x'] - self.model.tvp['ref_x']) ** 2
             + 10 * (self.model.x['pos_y'] - self.model.tvp['ref_y']) ** 2
-            + (self.model.x['psi'] - self.model.tvp['ref_psi']) ** 2
+            + (self.model.aux['psi_cost']) ** 2
             + self.model.aux['e_y'] ** 2 + self.model.aux['e_psi'] ** 2)
 
         mterm = (
@@ -86,10 +86,10 @@ class MPC:
         self.mpc.bounds['upper', '_x', 'pos_x'] = np.inf
         self.mpc.bounds['lower', '_x', 'pos_y'] = -np.inf
         self.mpc.bounds['upper', '_x', 'pos_y'] = np.inf
-        self.mpc.bounds['lower', '_x', 'psi'] = - np.pi
-        self.mpc.bounds['upper', '_x', 'psi'] = np.pi
+        self.mpc.bounds['lower', '_x', 'psi'] = - 2 * np.pi
+        self.mpc.bounds['upper', '_x', 'psi'] = 2 * np.pi
         self.mpc.bounds['lower', '_x', 'vel'] = 0.0
-        self.mpc.bounds['upper', '_x', 'vel'] = 0.5
+        self.mpc.bounds['upper', '_x', 'vel'] = 0.7
 
         # input constraints
         self.mpc.bounds['lower', '_u', 'acc'] = -0.1
