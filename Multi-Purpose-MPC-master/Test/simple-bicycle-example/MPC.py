@@ -67,14 +67,14 @@ class MPC:
         return self.tvp_template
 
     def objective_function_setup(self):
-        lterm = (self.model.aux['e_y'] ** 2 + self.model.aux['e_psi'] ** 2) + ((self.model.x['pos_x'] - self.model.tvp['x_ref']) ** 2
+        lterm = np.sqrt((self.model.aux['e_y'] ** 2 + self.model.aux['e_psi'] ** 2) + ((self.model.x['pos_x'] - self.model.tvp['x_ref']) ** 2
                 + (self.model.x['pos_y'] - self.model.tvp['y_ref']) ** 2
                 + (self.model.x['psi'] - self.model.tvp['psi_ref']) ** 2
-                + (self.model.x['vel'] - self.model.tvp['vel_ref']) ** 2)
-        mterm = ((self.model.x['pos_x'] - self.model.tvp['x_ref']) ** 2
+                + (self.model.x['vel'] - self.model.tvp['vel_ref']) ** 2))
+        mterm = np.sqrt(((self.model.x['pos_x'] - self.model.tvp['x_ref']) ** 2
                 + (self.model.x['pos_y'] - self.model.tvp['y_ref']) ** 2
                 + (self.model.x['psi'] - self.model.tvp['psi_ref']) ** 2
-                + (self.model.x['vel'] - self.model.tvp['vel_ref']) ** 2)
+                + (self.model.x['vel'] - self.model.tvp['vel_ref']) ** 2))
 
         self.mpc.set_objective(mterm=mterm, lterm=lterm)
         self.mpc.set_rterm(acc=0.1, delta=0.1)
@@ -131,7 +131,8 @@ class MPC:
 
         # Compute velocity along path
         # TODO: need to confirm the equation
-        s_dot = vel * np.cos(psi - self.mpc.data['_tvp', 'psi_ref'][0])
+        # s_dot = vel * np.cos(psi - self.mpc.data['_tvp', 'psi_ref'][0])
+        s_dot = vel * np.cos(self.mpc.data['_aux', 'e_psi'][0])
 
         # Update distance travelled along reference path
         globals.s += s_dot * self.Ts
