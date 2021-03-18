@@ -62,24 +62,31 @@ class MPC:
             self.tvp_template['_tvp', k, 'ref_x'] = current_waypoint.x
             self.tvp_template['_tvp', k, 'ref_y'] = current_waypoint.y
             self.tvp_template['_tvp', k, 'ref_psi'] = current_waypoint.psi
-
+            if current_waypoint.v_ref is not None:
+                self.tvp_template['_tvp', k,
+                                  'ref_vel'] = current_waypoint.v_ref
+            else:
+                self.tvp_template['_tvp', k, 'ref_vel'] = 0
         return self.tvp_template
 
     def objective_function_setup(self):
         lterm = (
-            10 * (self.model.x['pos_x'] - self.model.tvp['ref_x']) ** 2
-            + 10 * (self.model.x['pos_y'] - self.model.tvp['ref_y']) ** 2
+            5 * (self.model.x['pos_x'] - self.model.tvp['ref_x']) ** 2
+            + 5 * (self.model.x['pos_y'] - self.model.tvp['ref_y']) ** 2
+            + 1 * (self.model.x['vel'] - self.model.tvp['ref_vel']) ** 2
             + (self.model.aux['psi_cost']) ** 2
-            + self.model.aux['e_y'] ** 2 + self.model.aux['e_psi'] ** 2)
+        )
 
         mterm = (
             (self.model.x['pos_x'] - self.model.tvp['ref_x']) ** 2
-            + (self.model.x['pos_y'] - self.model.tvp['ref_y']) ** 2)
+            + (self.model.x['pos_y'] - self.model.tvp['ref_y']) ** 2
+            + 2 * self.model.x['e_y'] ** 2
+        )
 
         self.mpc.set_objective(mterm=mterm, lterm=lterm)
-        # self.mpc.set_rterm(delta=1e-2)
+        self.mpc.set_rterm(delta=1e-2)
 
-    def constraints_setup(self, vel_bound=[0.0, 1.0], e_y_bound=[0.0, 1.0], reset=False):
+    def constraints_setup(self, vel_bound=[0.0, 1.0], e_y_bound=[0.0, 0.0, 0.0, 0.0], reset=False):
 
         # states constraints
         self.mpc.bounds['lower', '_x', 'pos_x'] = -np.inf
@@ -89,7 +96,11 @@ class MPC:
         self.mpc.bounds['lower', '_x', 'psi'] = - 2 * np.pi
         self.mpc.bounds['upper', '_x', 'psi'] = 2 * np.pi
         self.mpc.bounds['lower', '_x', 'vel'] = 0.0
-        self.mpc.bounds['upper', '_x', 'vel'] = 1.5
+        self.mpc.bounds['upper', '_x', 'vel'] = 0.85
+        self.mpc.bounds['lower', '_x', 'e_y'] = e_y_bound[0]
+        self.mpc.bounds['upper', '_x', 'e_y'] = e_y_bound[1]
+        self.mpc.terminal_bounds['lower', '_x', 'e_y'] = e_y_bound[2]
+        self.mpc.terminal_bounds['upper', '_x', 'e_y'] = e_y_bound[3]
 
         # input constraints
         self.mpc.bounds['lower', '_u', 'acc'] = -0.1
@@ -116,7 +127,7 @@ class MPC:
         # s_dot = vel * np.cos(e_psi)
 
         # Compute velocity along path
-        s_dot = 1 / (1 - self.mpc.data['_aux', 'e_y'][0] * self.vehicle.current_waypoint.kappa) \
+        s_dot = 1 / (1 - self.mpc.data['_x', 'e_y'][0] * self.vehicle.current_waypoint.kappa) \
             * vel * np.cos(self.mpc.data['_aux', 'e_psi'][0])
 
         # Update distance travelled along reference path

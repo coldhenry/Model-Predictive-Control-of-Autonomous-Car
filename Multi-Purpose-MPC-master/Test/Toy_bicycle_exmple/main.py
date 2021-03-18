@@ -73,12 +73,38 @@ SpeedProfileConstraints = {'a_min': a_min, 'a_max': a_max,
 vehicle.reference_path.compute_speed_profile(SpeedProfileConstraints)
 
 
+def update_new_bound(mpc, model, ay_max):
+    # Compute dynamic constraints on e_y
+    ub, lb, _ = vehicle.reference_path.update_path_constraints(
+        vehicle.wp_id + 1,
+        globals.horizon,
+        2 * vehicle.safety_margin,
+        vehicle.safety_margin,
+    )
+
+    upper_e_y_1 = np.mean(ub)
+    lower_e_y_1 = np.mean(lb)
+    upper_e_y_2 = ub[-1]
+    lower_e_y_2 = lb[-1]
+
+    # Get curvature predictions from previous control signals
+    kappa_pred = np.tan(np.array(mpc.data['_u', 'delta'][0])) / vehicle.length
+
+    # Constrain maximum speed based on predicted car curvature
+    upper_vel = np.sqrt(ay_max / (np.abs(kappa_pred) + 1e-12))
+
+    # reset the boundaries
+    controller.constraints_setup(
+        vel_bound=[0.0, upper_vel], e_y_bound=[lower_e_y_1, upper_e_y_1, lower_e_y_2, upper_e_y_2], reset=True
+    )
+
+
 """
 Set initial state
 """
 
 x0 = np.array([vehicle.reference_path.waypoints[0].x, vehicle.reference_path.waypoints[0].y,
-               0, 0])
+               vehicle.reference_path.waypoints[0].psi, 0.3, 0])
 mpc.x0 = x0
 simulator.x0 = x0
 
@@ -113,11 +139,11 @@ while globals.s < reference_path.length:
         plt.pause(0.001)
         plt.show()
 
-        graphics.plot_results(t_ind=k)
-        graphics.plot_predictions(t_ind=k)
-        graphics.reset_axes()
-        plt.show()
-        plt.pause(0.01)
+        # graphics.plot_results(t_ind=k)
+        # graphics.plot_predictions(t_ind=k)
+        # graphics.reset_axes()
+        # plt.show()
+        # plt.pause(0.01)
 
     k += 1
 
