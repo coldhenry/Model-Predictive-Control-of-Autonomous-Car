@@ -42,6 +42,7 @@ class simple_bycicle_model:
         pos_y = self.model.set_variable(var_type="_x", var_name="pos_y")
         psi = self.model.set_variable(var_type="_x", var_name="psi")
         vel = self.model.set_variable(var_type="_x", var_name="vel")
+        e_y = self.model.set_variable(var_type="_x", var_name="e_y")
 
         # Input struct (optimization variables):
         acc = self.model.set_variable(var_type="_u", var_name="acc")
@@ -53,20 +54,19 @@ class simple_bycicle_model:
         y_ref = self.model.set_variable(var_type="_tvp", var_name="y_ref")
         psi_ref = self.model.set_variable(var_type="_tvp", var_name="psi_ref")
         vel_ref = self.model.set_variable(var_type="_tvp", var_name="vel_ref")
+        ey_lb = self.model.set_variable(var_type="_tvp", var_name="ey_lb")
+        ey_ub = self.model.set_variable(var_type="_tvp", var_name="ey_ub")
+
+        # tracking errors (optimization variables):
+        psi_diff = (fmod(psi - psi_ref + np.pi, 2 * np.pi) - np.pi)
+        self.model.set_expression('psi_diff', psi_diff)
 
         self.model.set_rhs("pos_x", vel * cos(psi))
         self.model.set_rhs("pos_y", vel * sin(psi))
         self.model.set_rhs("psi", vel * delta / self.length)
         self.model.set_rhs("vel", acc)
-        # self.model.set_rhs("e_y", vel * sin(e_y))
+        self.model.set_rhs("e_y", vel * sin(psi_diff))
         # self.model.set_rhs("e_psi", vel / self.length * tan(delta))
-
-        # tracking errors (optimization variables):
-        psi_diff = (fmod(psi - psi_ref + np.pi, 2 * np.pi) - np.pi)
-        e_y = pos_y - y_ref + vel * sin(psi_diff) * self.Ts
-
-        self.model.set_expression('psi_diff', psi_diff)
-        self.model.set_expression('e_y', e_y)
 
         self.model.setup()
 
