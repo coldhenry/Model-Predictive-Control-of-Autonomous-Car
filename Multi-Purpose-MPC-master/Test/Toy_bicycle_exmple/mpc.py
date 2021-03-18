@@ -89,7 +89,7 @@ class MPC:
         self.mpc.bounds['lower', '_x', 'psi'] = - 2 * np.pi
         self.mpc.bounds['upper', '_x', 'psi'] = 2 * np.pi
         self.mpc.bounds['lower', '_x', 'vel'] = 0.0
-        self.mpc.bounds['upper', '_x', 'vel'] = 0.7
+        self.mpc.bounds['upper', '_x', 'vel'] = 1.5
 
         # input constraints
         self.mpc.bounds['lower', '_u', 'acc'] = -0.1
