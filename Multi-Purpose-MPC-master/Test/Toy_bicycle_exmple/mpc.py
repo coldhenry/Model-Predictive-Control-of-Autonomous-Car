@@ -69,12 +69,14 @@ class MPC:
         lterm = (
             10 * (self.model.x['pos_x'] - self.model.tvp['ref_x']) ** 2
             + 10 * (self.model.x['pos_y'] - self.model.tvp['ref_y']) ** 2
-            + (self.model.aux['psi_cost']) ** 2
-            + self.model.aux['e_y'] ** 2 + self.model.aux['e_psi'] ** 2)
+            + self.model.aux['e_psi_current'] ** 2
+            + 5 * self.model.x['e_y'] ** 2
+        )
 
         mterm = (
             (self.model.x['pos_x'] - self.model.tvp['ref_x']) ** 2
-            + (self.model.x['pos_y'] - self.model.tvp['ref_y']) ** 2)
+            + (self.model.x['pos_y'] - self.model.tvp['ref_y']) ** 2
+        )
 
         self.mpc.set_objective(mterm=mterm, lterm=lterm)
         # self.mpc.set_rterm(delta=1e-2)
@@ -89,7 +91,9 @@ class MPC:
         self.mpc.bounds['lower', '_x', 'psi'] = - 2 * np.pi
         self.mpc.bounds['upper', '_x', 'psi'] = 2 * np.pi
         self.mpc.bounds['lower', '_x', 'vel'] = 0.0
-        self.mpc.bounds['upper', '_x', 'vel'] = 1.5
+        self.mpc.bounds['upper', '_x', 'vel'] = 0.5
+        self.mpc.bounds['lower', '_x', 'e_y'] = - 0.5
+        self.mpc.bounds['upper', '_x', 'e_y'] = 0.5
 
         # input constraints
         self.mpc.bounds['lower', '_u', 'acc'] = -0.1
@@ -109,15 +113,15 @@ class MPC:
 
     def distance_update(self, x0):
 
-        vel, e_psi = x0[3], self.mpc.data['_aux', 'e_psi'][0]
+        vel, e_psi = x0[3], self.mpc.data['_aux', 'e_psi_current'][0]
 
         # Compute velocity along path
         # TODO: need to confirm the equation
         # s_dot = vel * np.cos(e_psi)
 
         # Compute velocity along path
-        s_dot = 1 / (1 - self.mpc.data['_aux', 'e_y'][0] * self.vehicle.current_waypoint.kappa) \
-            * vel * np.cos(self.mpc.data['_aux', 'e_psi'][0])
+        s_dot = 1 / (1 - self.mpc.data['_x', 'e_y'][0] * self.vehicle.current_waypoint.kappa) \
+            * vel * np.cos(e_psi)
 
         # Update distance travelled along reference path
         globals.s += s_dot * self.Ts

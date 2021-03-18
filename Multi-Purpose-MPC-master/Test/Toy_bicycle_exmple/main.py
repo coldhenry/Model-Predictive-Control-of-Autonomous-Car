@@ -78,7 +78,7 @@ Set initial state
 """
 
 x0 = np.array([vehicle.reference_path.waypoints[0].x, vehicle.reference_path.waypoints[0].y,
-               0, 0])
+               0, 0, 0])
 mpc.x0 = x0
 simulator.x0 = x0
 
