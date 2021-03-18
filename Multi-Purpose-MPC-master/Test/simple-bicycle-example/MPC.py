@@ -69,7 +69,7 @@ class MPC:
     def objective_function_setup(self):
         lterm = (
             self.model.aux['e_y'] ** 2
-            + self.model.aux['e_psi_curr'] ** 2 
+            + self.model.aux['psi_diff'] ** 2 
             + 10 * (self.model.x['pos_x'] - self.model.tvp['x_ref']) ** 2 
             + 10 * (self.model.x['pos_y'] - self.model.tvp['y_ref']) ** 2)
 
@@ -133,7 +133,7 @@ class MPC:
 
         # Compute velocity along path
         # TODO: need to confirm the equation
-        s_dot = vel * np.cos(self.mpc.data['_aux', 'e_psi_curr'][0])
+        s_dot = vel * np.cos(self.mpc.data['_aux', 'psi_diff'][0])
 
         # Update distance travelled along reference path
         globals.s += s_dot * self.Ts
