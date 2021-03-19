@@ -17,6 +17,8 @@ import globals
 
 sys.path.append('../../')
 
+print("hi")
+
 
 def environment_setup(map_file, use_obstacles=True):
 
