@@ -65,17 +65,14 @@ def MPC_Problem_setup(reference_path, ay_max=4.0, a_min=-1, a_max=1):
     Get configured do-mpc modules:
     '''
     # model setup
-    vehicle = simple_bycicle_model(
+    Vehicle = simple_bycicle_model(
         length=0.12, width=0.06, reference_path=reference_path, Ts=0.05
     )
-    vehicle.model_setup()
-    model = vehicle.model
+    Vehicle.model_setup()
 
-    controller = MPC(vehicle)
-    mpc = controller.mpc
+    Controller = MPC(Vehicle)
 
-    sim_instance = Simulator(vehicle)
-    simulator = sim_instance.simulator
+    Sim = Simulator(Vehicle)
 
     # Compute speed profile
     SpeedProfileConstraints = {
@@ -85,9 +82,9 @@ def MPC_Problem_setup(reference_path, ay_max=4.0, a_min=-1, a_max=1):
         'v_max': 1.0,
         'ay_max': ay_max,
     }
-    vehicle.reference_path.compute_speed_profile(SpeedProfileConstraints)
+    Vehicle.reference_path.compute_speed_profile(SpeedProfileConstraints)
 
-    return vehicle, model, controller, mpc, sim_instance, simulator
+    return Vehicle, Controller, Sim
 
 
 if __name__ == '__main__':
@@ -102,39 +99,42 @@ if __name__ == '__main__':
     reference_path = environment_setup(map_file, use_obstacles=True)
 
     # initiate the class of mpc, simulator
-    vehicle, model, controller, mpc, sim_instance, simulator = MPC_Problem_setup(
-        reference_path)
+    Vehicle, Controller, Sim = MPC_Problem_setup(reference_path)
 
     '''
     Set initial state
     '''
-    x0 = np.array([vehicle.reference_path.waypoints[0].x, vehicle.reference_path.waypoints[0].y,
-                   vehicle.reference_path.waypoints[0].psi, 0.3, 0])
-    mpc.x0 = x0
-    simulator.x0 = x0
+    x0 = np.array([Vehicle.reference_path.waypoints[0].x, Vehicle.reference_path.waypoints[0].y,
+                   Vehicle.reference_path.waypoints[0].psi, 0.3, 0])
+    Controller.mpc.x0 = x0
+    Sim.simulator.x0 = x0
 
     # Use initial state to set the initial guess.
-    mpc.set_initial_guess()
+    Controller.mpc.set_initial_guess()
 
     '''
     Run MPC main loop:
     '''
     # Until arrival at end of path
+    t = 0
     while globals.s < reference_path.length:
         # Get control signals
-        u = controller.get_control(x0)
+        u = Controller.get_control(x0)
 
         # Simulate car
-        x0 = simulator.make_step(u)
-        controller.distance_update(x0)
+        x0 = Sim.simulator.make_step(u)
+        Controller.distance_update(x0)
 
         # Plot path and drivable area/ plot car
-        reference_path.show(id=vehicle.wp_id)
-        sim_instance.show(x0)
+        pred_x = Controller.mpc.data.prediction(('_x', 'pos_x'), t_ind=t)[0]
+        pred_y = Controller.mpc.data.prediction(('_x', 'pos_y'), t_ind=t)[0]
+        reference_path.show(pred_x, pred_y)
+        Sim.show(x0)
 
         # update boundary for the next iteration
-        controller.constraints_setup()
+        Controller.constraints_setup()
 
+        t += 1
         plt.axis('off')
         plt.pause(0.001)
 

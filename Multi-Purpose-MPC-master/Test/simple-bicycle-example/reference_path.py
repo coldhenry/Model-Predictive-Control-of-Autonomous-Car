@@ -22,6 +22,7 @@ DRIVABLE_AREA = '#BDC3C7'
 WAYPOINTS = '#D0D3D4'
 PATH_CONSTRAINTS = '#F5B041'
 OBSTACLE = '#2E4053'
+PREDICTION = '#BA4A00'
 
 
 ############
@@ -381,7 +382,7 @@ class ReferencePath:
 
         return self.waypoints[wp_id]
 
-    def show(self, id=id, display_drivable_area=True):
+    def show(self, pred_x, pred_y, display_drivable_area=True):
         """
         Display path object on current figure.
         :param display_drivable_area: If True, display arrows indicating width
@@ -422,10 +423,7 @@ class ReferencePath:
         # Plot waypoints
         # colors = [wp.v_ref for wp in self.waypoints]
         plt.scatter(wp_x, wp_y, c=WAYPOINTS, s=10)
-
-        curr_x = self.waypoints[id].x
-        curr_y = self.waypoints[id].y
-        plt.plot(curr_x, curr_y, 'ro')
+        plt.scatter(pred_x, pred_y, c=PREDICTION, s=15)
 
         # Plot arrows indicating drivable area
         if display_drivable_area:

@@ -17,7 +17,7 @@ class MPC:
         self.vehicle = vehicle
         self.model = vehicle.model
 
-        self.horizon = 20
+        self.horizon = 15
         globals.horizon = self.horizon  # for model.py use
 
         self.Ts = 0.05
@@ -72,7 +72,7 @@ class MPC:
     def objective_function_setup(self):
         lterm = (
             100000 *
-                (self.model.x['e_y'] - 1 * (self.model.tvp['ey_lb'] +
+                (self.model.x['e_y'] - (self.model.tvp['ey_lb'] +
                                             self.model.tvp['ey_ub']) / 2) ** 2
             + self.model.aux['psi_diff'] ** 2
             #+ 0.001 * (self.model.x['pos_x'] - self.model.tvp['x_ref']) ** 2
@@ -88,7 +88,7 @@ class MPC:
             + 0.1 * (self.model.x['vel'] - self.model.tvp['vel_ref']) ** 2)
 
         self.mpc.set_objective(mterm=mterm, lterm=lterm)
-        #self.mpc.set_rterm(acc=0.01, delta=0.01)
+        # self.mpc.set_rterm(acc=0.01, delta=0.01)
 
     def constraints_setup(
         self, vel_bound=[0.0, 1.0], reset=False
@@ -103,8 +103,8 @@ class MPC:
         self.mpc.bounds['upper', '_x', 'psi'] = 2 * np.pi
         self.mpc.bounds['lower', '_x', 'vel'] = vel_bound[0]
         self.mpc.bounds['upper', '_x', 'vel'] = vel_bound[1]
-        self.mpc.bounds['lower', '_x', 'e_y'] = -5
-        self.mpc.bounds['upper', '_x', 'e_y'] = 5
+        self.mpc.bounds['lower', '_x', 'e_y'] = -2
+        self.mpc.bounds['upper', '_x', 'e_y'] = 2
 
         # input constraints
         self.mpc.bounds['lower', '_u', 'acc'] = -0.5
