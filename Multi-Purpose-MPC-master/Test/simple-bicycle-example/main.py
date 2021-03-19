@@ -60,7 +60,7 @@ def environment_setup(map_file, use_obstacles=True):
     return reference_path
 
 
-def MPC_Problem_setup(reference_path, ay_max=4.0, a_min=-1, a_max=1):
+def MPC_Problem_setup(reference_path, ay_max=4.0, a_min=-1, a_max=1, use_obstacles=False):
     '''
     Get configured do-mpc modules:
     '''
@@ -70,7 +70,7 @@ def MPC_Problem_setup(reference_path, ay_max=4.0, a_min=-1, a_max=1):
     )
     Vehicle.model_setup()
 
-    Controller = MPC(Vehicle)
+    Controller = MPC(Vehicle, use_obstacles)
 
     Sim = Simulator(Vehicle)
 
@@ -92,14 +92,15 @@ if __name__ == '__main__':
     ''' User settings: '''
     show_animation = True
     store_results = False
+    use_obstacles = False
 
     map_file = 'maps/sim_map.png'
 
     # set up the map/ assign the waypoints/ add obstacles
-    reference_path = environment_setup(map_file, use_obstacles=True)
+    reference_path = environment_setup(map_file, use_obstacles=use_obstacles)
 
     # initiate the class of mpc, simulator
-    Vehicle, Controller, Sim = MPC_Problem_setup(reference_path)
+    Vehicle, Controller, Sim = MPC_Problem_setup(reference_path, use_obstacles=use_obstacles)
 
     '''
     Set initial state

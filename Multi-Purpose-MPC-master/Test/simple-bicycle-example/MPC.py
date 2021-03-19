@@ -12,10 +12,11 @@ sys.path.append('../../')
 
 
 class MPC:
-    def __init__(self, vehicle):
+    def __init__(self, vehicle, use_obstacles):
 
         self.vehicle = vehicle
         self.model = vehicle.model
+        self.use_obstacles = use_obstacles
 
         self.horizon = 15
         globals.horizon = self.horizon  # for model.py use
@@ -70,22 +71,22 @@ class MPC:
         return self.tvp_template
 
     def objective_function_setup(self):
-        lterm = (
-            100000 *
-                (self.model.x['e_y'] - (self.model.tvp['ey_lb'] +
-                                            self.model.tvp['ey_ub']) / 2) ** 2
-            + self.model.aux['psi_diff'] ** 2
-            #+ 0.001 * (self.model.x['pos_x'] - self.model.tvp['x_ref']) ** 2
-            #+ 0.001 * (self.model.x['pos_y'] - self.model.tvp['y_ref']) ** 2
-        )
-
-        mterm = (
-            100000 *
-                (self.model.x['e_y'] - (self.model.tvp['ey_lb'] +
-                                        self.model.tvp['ey_ub']) / 2) ** 2
-            #+ 0.001 * (self.model.x['pos_x'] - self.model.tvp['x_ref']) ** 2
-            #+ 0.001 * (self.model.x['pos_y'] - self.model.tvp['y_ref']) ** 2
-            + 0.1 * (self.model.x['vel'] - self.model.tvp['vel_ref']) ** 2)
+        # obstacle avoidance
+        if self.use_obstacles:
+            lterm = (100000 * (self.model.x['e_y'] - (self.model.tvp['ey_lb'] + self.model.tvp['ey_ub']) / 2) ** 2
+                + self.model.aux['psi_diff'] ** 2
+            )
+            mterm = (100000 * (self.model.x['e_y'] - (self.model.tvp['ey_lb'] + self.model.tvp['ey_ub']) / 2) ** 2
+                + 0.1 * (self.model.x['vel'] - self.model.tvp['vel_ref']) ** 2)
+        # lane following
+        else:
+            lterm = (self.model.aux['psi_diff'] ** 2
+                + (self.model.x['pos_x'] - self.model.tvp['x_ref']) ** 2
+                + (self.model.x['pos_y'] - self.model.tvp['y_ref']) ** 2
+            )
+            mterm = ((self.model.x['pos_x'] - self.model.tvp['x_ref']) ** 2
+                + (self.model.x['pos_y'] - self.model.tvp['y_ref']) ** 2
+                + 0.1 * (self.model.x['vel'] - self.model.tvp['vel_ref']) ** 2)
 
         self.mpc.set_objective(mterm=mterm, lterm=lterm)
         # self.mpc.set_rterm(acc=0.01, delta=0.01)
