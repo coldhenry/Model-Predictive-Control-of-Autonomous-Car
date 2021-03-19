@@ -8,5 +8,6 @@
 5. `globals.py`: store global variables
 
 ## Files cited from matssteinweg
+Following files are cited from the [Github repo of matssteinweg](https://github.com/matssteinweg/Multi-Purpose-MPC)
 1. `map.py`: map, obstacle generator
 2. `reference.py`: Waypoint class, plotting functions
