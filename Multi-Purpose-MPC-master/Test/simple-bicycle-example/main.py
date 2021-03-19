@@ -42,17 +42,17 @@ reference_path = ReferencePath(
 )
 
 # Add obstacles
-use_obstacles = False
+use_obstacles = True
 if use_obstacles:
-    obs1 = Obstacle(cx=0.0, cy=0.0, radius=0.05)
-    obs2 = Obstacle(cx=-0.8, cy=-0.5, radius=0.08)
-    obs3 = Obstacle(cx=-0.7, cy=-1.5, radius=0.05)
-    obs4 = Obstacle(cx=-0.3, cy=-1.0, radius=0.08)
-    obs5 = Obstacle(cx=0.27, cy=-1.0, radius=0.05)
-    obs6 = Obstacle(cx=0.78, cy=-1.47, radius=0.05)
-    obs7 = Obstacle(cx=0.73, cy=-0.9, radius=0.07)
-    obs8 = Obstacle(cx=1.2, cy=0.0, radius=0.08)
-    obs9 = Obstacle(cx=0.67, cy=-0.05, radius=0.06)
+    obs1 = Obstacle(cx=0.0, cy=0.05, radius=0.05) #0.05
+    obs2 = Obstacle(cx=-0.85, cy=-0.5, radius=0.08) #0.08
+    obs3 = Obstacle(cx=-0.75, cy=-1.5, radius=0.05) #0.05
+    obs4 = Obstacle(cx=-0.35, cy=-1.0, radius=0.08) #0.08
+    obs5 = Obstacle(cx=0.35, cy=-1.0, radius=0.05) #0.05
+    obs6 = Obstacle(cx=0.78, cy=-1.47, radius=0.05) #0.05
+    obs7 = Obstacle(cx=0.73, cy=-0.9, radius=0.07) #0.07
+    obs8 = Obstacle(cx=1.2, cy=0.0, radius=0.08) #0.08
+    obs9 = Obstacle(cx=0.67, cy=-0.05, radius=0.06) #0.06s
     map.add_obstacles([obs1, obs2, obs3, obs4, obs5, obs6, obs7, obs8, obs9])
 
 
@@ -86,34 +86,10 @@ SpeedProfileConstraints = {
 vehicle.reference_path.compute_speed_profile(SpeedProfileConstraints)
 
 
-def update_new_bound(mpc, model, ay_max):
-    # Compute dynamic constraints on e_y
-    ub, lb, _ = vehicle.reference_path.update_path_constraints(
-        vehicle.wp_id + 1,
-        globals.horizon,
-        2 * vehicle.safety_margin,
-        vehicle.safety_margin,
-    )
-
-    upper_e_y = np.mean(ub)
-    lower_e_y = np.mean(lb)
-
-    # Get curvature predictions from previous control signals
-    kappa_pred = np.tan(np.array(mpc.data['_u', 'delta'][0])) / vehicle.length
-
-    # Constrain maximum speed based on predicted car curvature
-    upper_vel = np.sqrt(ay_max / (np.abs(kappa_pred) + 1e-12))
-
-    # reset the boundaries
-    controller.constraints_setup(
-        vel_bound=[0.0, upper_vel], e_y_bound=[lower_e_y, upper_e_y], reset=True
-    )
-
-
 '''
 Set initial state
 '''
-x0 = np.array([vehicle.reference_path.waypoints[0].x, vehicle.reference_path.waypoints[0].y, 0, 0])
+x0 = np.array([vehicle.reference_path.waypoints[0].x, vehicle.reference_path.waypoints[0].y, vehicle.reference_path.waypoints[0].psi, 0.3, 0])
 mpc.x0 = x0
 simulator.x0 = x0
 
@@ -144,13 +120,14 @@ while 1:
     u = controller.get_control(x0)
 
     # DEBUG
-    # print("=========================")
+    print("=========================")
     # print("delta: ", u[1])
     # print("psi: ", x0[2])
     # print("psi_ref: ", vehicle.reference_path.waypoints[vehicle.wp_id].psi)
     # print("x: ", x0[0])
     # print("x_ref: ", vehicle.reference_path.waypoints[vehicle.wp_id].x)
-    # print("=========================")
+    print("EY: ", controller.mpc.data['_x', 'e_y'])
+    print("=========================")
 
     # Simulate car
     x0 = simulator.make_step(u)
@@ -174,7 +151,8 @@ while 1:
     controller.show_prediction()
 
     # update boundary for the next iteration
-    update_new_bound(mpc, model, ay_max)
+    # controller.update_new_bound()
+    controller.constraints_setup()
 
     # Set figure title
     # plt.title('MPC Simulation: acc(t): {:.2f}, delta(t): {:.2f}, Duration: '
