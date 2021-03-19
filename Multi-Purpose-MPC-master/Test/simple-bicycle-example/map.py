@@ -1,7 +1,7 @@
 ###########################################################################################
 #                                                                                         #
 #                                                                                         #
-#     This file is cited from:                                                            #
+#     This file is cited and modified from:                                               #
 #     * Github repository: Multi-Purpose MPC                                              #
 #     * Author: matssteinweg, ZTH                                                         #
 #     We don't own the file. All rights reserved to the original author                   #
@@ -44,13 +44,16 @@ class Obstacle:
         # Draw circle
         circle = plt_patches.Circle(
             xy=(self.cx, self.cy), radius=self.radius, color=OBSTACLE, zorder=20)
+        rec = plt_patches.Rectangle(xy=(self.cx - self.radius/2, self.cy - self.radius/2), width=self.radius, height=self.radius,
+                                    zorder=20)
         ax = plt.gca()
-        ax.add_patch(circle)
-
+        # ax.add_patch(circle)
+        ax.add_patch(rec)
 
 #######
 # Map #
 #######
+
 
 class Map:
     def __init__(self, file_path, origin, resolution, threshold_occupied=100):
@@ -167,7 +170,8 @@ class Map:
 
 
 if __name__ == '__main__':
-    map = Map('maps/real_map.png')
+    map = Map(file_path='maps/sim_map.png', origin=[-1, -2],
+              resolution=0.005)
     # map = Map('maps/sim_map.png')
     plt.imshow(np.flipud(map.data), cmap='gray')
     plt.show()
