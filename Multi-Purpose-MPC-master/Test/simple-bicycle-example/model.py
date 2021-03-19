@@ -71,32 +71,20 @@ class simple_bycicle_model:
         self.model.setup()
 
     def _compute_safety_margin(self):
-        """
-        Compute safety margin for car if modeled by its center of gravity.
-        """
-        # Model ellipsoid around the car
-        safety_margin = self.width / np.sqrt(2)
-
-        return safety_margin
+        return self.width / np.sqrt(2)
 
     def get_current_waypoint(self):
-        """
-        Get closest waypoint on reference path based on car's current location.
-        """
 
-        # Compute cumulative path length
-        length_cum = np.cumsum(self.reference_path.segment_lengths)
-        # Get first index with distance larger than distance traveled by car
-        # so far
+        # Compute the sum of the path length
+        sum_length = np.cumsum(self.reference_path.segment_lengths)
 
-        greater_than_threshold = length_cum > globals.s
-        next_wp_id = greater_than_threshold.searchsorted(True)
-        # Get previous index
+        find_greater_value = sum_length > globals.s
+        next_wp_id = find_greater_value.searchsorted(True)
+
+        # dervie the distance traveled of two id points
         prev_wp_id = next_wp_id - 1
-
-        # Get distance traveled for both enclosing waypoints
-        s_next = length_cum[next_wp_id]
-        s_prev = length_cum[prev_wp_id]
+        s_next = sum_length[next_wp_id]
+        s_prev = sum_length[prev_wp_id]
 
         if np.abs(globals.s - s_next) < np.abs(globals.s - s_prev):
             self.wp_id = next_wp_id

@@ -1,3 +1,15 @@
+###########################################################################################
+#                                                                                         #
+#                                                                                         #
+#     This file is cited from:                                                            #
+#     * Github repository: Multi-Purpose MPC                                              #
+#     * Author: matssteinweg, ZTH                                                         #
+#     We don't own the file. All rights reserved to the original author                  #
+#     for more details please check https://github.com/matssteinweg/Multi-Purpose-MPC     #
+#                                                                                         #
+#                                                                                         #
+###########################################################################################
+
 import numpy as np
 import matplotlib.pyplot as plt
 from skimage.morphology import remove_small_holes
@@ -31,8 +43,8 @@ class Obstacle:
         """
 
         # Draw circle
-        circle = plt_patches.Circle(xy=(self.cx, self.cy), radius=
-                                        self.radius, color=OBSTACLE, zorder=20)
+        circle = plt_patches.Circle(
+            xy=(self.cx, self.cy), radius=self.radius, color=OBSTACLE, zorder=20)
         ax = plt.gca()
         ax.add_patch(circle)
 
@@ -134,7 +146,7 @@ class Map:
             y, x = np.ogrid[-radius_px: radius_px, -radius_px: radius_px]
             index = x ** 2 + y ** 2 <= radius_px ** 2
             self.data[cy_px-radius_px:cy_px+radius_px, cx_px-radius_px:
-                                                cx_px+radius_px][index] = 0
+                      cx_px+radius_px][index] = 0
 
     def add_boundary(self, boundaries):
         """

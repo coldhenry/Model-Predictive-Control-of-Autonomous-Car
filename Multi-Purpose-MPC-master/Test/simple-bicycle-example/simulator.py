@@ -10,7 +10,6 @@ import globals
 sys.path.append('../../')
 
 # Colors
-PREDICTION = '#BA4A00'
 CAR = '#F1C40F'
 CAR_OUTLINE = '#B7950B'
 
@@ -44,6 +43,13 @@ class Simulator:
 
         return self.tvp_template
 
+    #################################################################
+    #                                                               #
+    #   This plotting function is cited from:                       #
+    #   the file "spatial_bicycle_models.py" of matssteinweg, ZTH   #
+    #   to use the simulator created by the author                  #
+    #                                                               #
+    #################################################################
     def show(self, states):
         '''
         Display car on current axis.
