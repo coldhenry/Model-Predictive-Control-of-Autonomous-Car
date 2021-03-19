@@ -1,10 +1,10 @@
 # Model Predictive Control of an Autonomous Vehicle
 
-Deep reinforcement learning techniques apply to autonomous driving problems.
+Utilize model predictive controller to perform lane following and obstacle avoidance.
 
 <p align="center">
   <img width="450" height="300" src="https://github.com/coldhenry/Model-Predictive-Control-of-Autonomous-Car/blob/main/Multi-Purpose-MPC-master/Test/simple-bicycle-example/mpc.gif"/><br/>
-  <em>Agent running in the intersection environment.</em>
+  <em>Agent running trying to avoid obstacles.</em>
 </p>
 
 ## Getting Started
@@ -73,13 +73,6 @@ env.reset()
 </p>
 <p align="center">
   <em>Agent running in the highway environment.</em>
-</p>
-
-<p align="center">
-  <img width="900" height="450" src="https://github.com/arthur960304/dqn-dense-traffic/blob/main/doc/highway.png"/><br/>
-</p>
-<p align="center">
-  <em>Average training reward in the highway environment.</em>
 </p>
 
 
