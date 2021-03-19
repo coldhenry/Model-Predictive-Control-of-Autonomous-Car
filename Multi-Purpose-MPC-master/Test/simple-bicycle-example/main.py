@@ -119,16 +119,6 @@ while 1:
     # Get control signals
     u = controller.get_control(x0)
 
-    # DEBUG
-    print("=========================")
-    # print("delta: ", u[1])
-    # print("psi: ", x0[2])
-    # print("psi_ref: ", vehicle.reference_path.waypoints[vehicle.wp_id].psi)
-    # print("x: ", x0[0])
-    # print("x_ref: ", vehicle.reference_path.waypoints[vehicle.wp_id].x)
-    print("EY: ", controller.mpc.data['_x', 'e_y'])
-    print("=========================")
-
     # Simulate car
     x0 = simulator.make_step(u)
     controller.distance_update(x0)

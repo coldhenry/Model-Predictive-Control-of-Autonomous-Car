@@ -52,10 +52,6 @@ class MPC:
 
     def tvp_fun(self, t_now):
         ey_ub, ey_lb, _ = self.update_new_bound()
-        # print("=================")
-        # print("Upper: ", ey_ub)
-        # print("Lower: ", ey_lb)
-        # print("=================")
         for k in range(self.horizon):
             # extract information from current waypoint
             current_waypoint = self.vehicle.reference_path.get_waypoint(
@@ -103,11 +99,6 @@ class MPC:
         self.mpc.bounds['upper', '_x', 'psi'] = 2 * np.pi
         self.mpc.bounds['lower', '_x', 'vel'] = vel_bound[0]
         self.mpc.bounds['upper', '_x', 'vel'] = vel_bound[1]
-
-        # if len(self.mpc.data['_tvp', 'ey_lb']) != 0:
-        #     # print("++++++++++++++++++++++++++")
-        #     # print(self.mpc.data['_tvp', 'ey_lb'])
-        #     # print("++++++++++++++++++++++++++")
         self.mpc.bounds['lower', '_x', 'e_y'] = -5
         self.mpc.bounds['upper', '_x', 'e_y'] = 5
 
@@ -149,12 +140,6 @@ class MPC:
 
         # solve optization problem
         u0 = self.mpc.make_step(x0)
-
-        # update predicted states
-        # TODO: this is for plotting predicted trajectory
-        #       but this solver doesn't reveal inner states
-        #       but only final control signal
-        # self.current_prediction = self.update_prediction()
 
         return np.array([u0[0], u0[1]])
 
