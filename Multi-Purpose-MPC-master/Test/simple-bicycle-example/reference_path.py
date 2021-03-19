@@ -1,3 +1,14 @@
+###########################################################################################
+#                                                                                         #
+#                                                                                         #
+#     This file is cited from:                                                            #
+#     * Github repository: Multi-Purpose MPC                                              #
+#     * Author: matssteinweg, ZTH                                                         #
+#     We don't own the file. All rights reserved to the original author                   #
+#     for more details please check https://github.com/matssteinweg/Multi-Purpose-MPC     #
+#                                                                                         #
+#                                                                                         #
+###########################################################################################
 import numpy as np
 import math
 from map import Map, Obstacle
@@ -184,7 +195,8 @@ class ReferencePath:
                 prev_wp = np.array(waypoint_coordinates[wp_id - 1])
                 dif_behind = current_wp - prev_wp
                 angle_behind = np.arctan2(dif_behind[1], dif_behind[0])
-                angle_dif = np.mod(psi - angle_behind + np.pi, 2 * np.pi) - np.pi
+                angle_dif = np.mod(psi - angle_behind +
+                                   np.pi, 2 * np.pi) - np.pi
                 kappa = angle_dif / (dist_ahead + self.eps)
 
             waypoints.append(Waypoint(x, y, psi, kappa))
