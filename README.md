@@ -11,17 +11,15 @@ We utilize model predictive controller to perform lane following and obstacle av
 
 These instructions will get you a copy of the project up and running on your local machine for development and testing purposes. See deployment for notes on how to deploy the project on a live system.
 
-### Simulator
+### Simulation Environment
 
-[highway-env](https://github.com/eleurent/highway-env)
+[Github Repository: Multi-Purpose MPC by matssteinweg](https://github.com/matssteinweg/Multi-Purpose-MPC)
 
 ### Built With
 
 * Python 3.6.10
 
-* PyTorch >= 1.7.0
-
-* gym 0.17.3
+* do-mpc 4.1.1
 
 * numpy >= 1.16.2
 
@@ -31,13 +29,15 @@ These instructions will get you a copy of the project up and running on your loc
 
 ```
 .
-├── Highway                       # Scripts for highway environment
-│   ├── dueling_dqn.py            # Dueling DQN
-│   ├── double_dqn.py             # Double DQN
-│   ├── double_dqn_cnn.py         # Double DQN with CNN architecture
-│   └── double_dqn_prioritized.py # Double DQN with Prioritized Buffer
-├── Intersection                  # Scripts for intersection environment
-├── doc                           # Detailed info
+├── src                    
+│   ├── main.py            # Execution part
+│   ├── MPC.py             # the algorithm of model predictive control
+│   ├── model.py           # simple bicycle model
+│   ├── globals.py         # some variables that use globally
+│   ├── maps.py            # generate a usable map from any picture (cited from matssteinweg)
+│   └── reference_path.py  # generate reference path, waypoints for the assigned map (cited from matssteinweg)
+├── result                 # GIF files of the results of two scenarios
+├── maps                   # the picture of the map
 └── README.md
 ```
 
