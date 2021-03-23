@@ -4,7 +4,7 @@ We utilize model predictive controller to perform lane following and obstacle av
 
 <p align="center">
   <img width="450" height="300" src="https://github.com/coldhenry/Model-Predictive-Control-of-Autonomous-Car/blob/main/results/obstacle_avoidance.gif"/><br/>
-  <em>Agent running trying to avoid obstacles.</em>
+  <em>Agent trying to avoid obstacles.</em>
 </p>
 
 ## Getting Started
@@ -43,34 +43,21 @@ These instructions will get you a copy of the project up and running on your loc
 
 ## How to Run
 
-if you want to try reproducing the results, just do
-```
-cd src
-python main.py
-```
+There are 2 tasks that you can try, namely lane following and obstacle avoidance, as shown in [Results section](#results)
 
-### Configure the Environment
-
-We configured the highway environment in the following way, you can also read the [documentation online](https://highway-env.readthedocs.io/en/latest/quickstart.html#configuring-an-environment) for other settings.
+Modify the flag at line 95 in the `main.py` file if you want to switch between tasks
 
 ```python
-env = gym.make("highway-v0")
-env.config["lanes_count"] = 4
-env.config["duration"] = 100
-env.config["vehicles_count"] = 10
-env.config["vehicles_density"] = 1.3
-env.config["policy_frequency"] = 2
-env.config["simulation_frequency"] = 10
-env.reset()
+use_obstacles = False
 ```
 
 ## Results
 
 <p align="center">
-  <img width="640" height="160" src="https://github.com/arthur960304/dqn-dense-traffic/blob/main/doc/highway.gif"/><br/>
+  <img width="450" height="300" src="https://github.com/coldhenry/Model-Predictive-Control-of-Autonomous-Car/blob/main/results/lane_following.gif"/><br/>
 </p>
 <p align="center">
-  <em>Agent running in the highway environment.</em>
+  <em>Agent trying to follow desired trajectory.</em>
 </p>
 
 
