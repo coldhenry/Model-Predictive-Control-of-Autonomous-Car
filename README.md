@@ -13,7 +13,7 @@ These instructions will get you a copy of the project up and running on your loc
 
 ### Simulation Environment
 
-[Github Repository: Multi-Purpose MPC by matssteinweg](https://github.com/matssteinweg/Multi-Purpose-MPC)
+[Multi-Purpose MPC by matssteinweg](https://github.com/matssteinweg/Multi-Purpose-MPC)
 
 ### Built With
 
@@ -43,12 +43,18 @@ These instructions will get you a copy of the project up and running on your loc
 
 ## How to Run
 
-There are 2 tasks that you can try, namely lane following and obstacle avoidance, as shown in [Results section](#results)
+There are 2 tasks you can try, which are lane following and obstacle avoidance, as shown in [Results section](#results)
 
 Modify the flag at line 95 in the `main.py` file if you want to switch between tasks
 
 ```python
 use_obstacles = False
+```
+
+after that, just run
+
+```python
+python main.py
 ```
 
 ## Results
