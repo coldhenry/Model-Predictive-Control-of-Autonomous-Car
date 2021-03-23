@@ -3,7 +3,7 @@
 We utilize model predictive controller to perform lane following and obstacle avoidance.
 
 <p align="center">
-  <img width="590" height="760" src="https://github.com/coldhenry/Model-Predictive-Control-of-Autonomous-Car/blob/main/results/obstacle_avoidance.gif"/><br/>
+  <img src="https://github.com/coldhenry/Model-Predictive-Control-of-Autonomous-Car/blob/main/results/obstacle_avoidance.gif"/><br/>
   <em>Agent running trying to avoid obstacles.</em>
 </p>
 
